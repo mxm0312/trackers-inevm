@@ -1,0 +1,20 @@
+from yolo_detector import *
+from sort import *
+
+import numpy as np
+
+class BaseTracker:
+    def track(self, frame: np.ndarray) -> np.ndarray:
+        pass
+
+class SortTracker(BaseTracker):
+    def __init__(self):
+        self.recreate()
+
+    def recreate(self):
+        self.detector = YoloDetector()
+        self.tracker = Sort()
+
+    def track(self, frame: np.ndarray) -> np.ndarray:
+        boxes = self.detector.detect(frame)
+        return np.array(self.tracker.update(boxes), dtype=int) 
