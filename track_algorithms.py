@@ -17,4 +17,6 @@ class SortTracker(BaseTracker):
 
     def track(self, frame: np.ndarray) -> np.ndarray:
         boxes = self.detector.detect(frame)
+        if len(boxes) == 0:
+            return None
         return np.array(self.tracker.update(boxes), dtype=int) 

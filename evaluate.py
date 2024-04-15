@@ -15,30 +15,47 @@ def markup_video(input_folder: str, save_markup_video=False):
     print(f"dataset path: {input_folder}")
     print(f"{len(videos)} files")
     # Loop over the videos
-    annotations = []
-    for file_path in tqdm(videos):
+    for file_path in videos:
+        annotations = []
+        images = []
+        categories = [{
+            "id": 1,
+            "name": "objects"
+        }]
         tracker = SortTracker() # Create tracker
         cap = cv2.VideoCapture(file_path)
-        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # float `width`
-        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float `height`
-        fps = cap.get(cv2.CAP_PROP_FPS)  # Video FPS
         frames = get_video_frames(cap)  # Get video frames
-        for i, frame in enumerate(frames):
+        for i, frame in enumerate(tqdm(frames, desc=f"Loop over {Path(file_path).name} frames")):
             results = tracker.track(frame)
+            if results is None:
+                continue
             for box in results:
-                frames[i] = draw_frame_markup(box, frames[i])
-                annotations.append({
+                annotations.append({ # add box annotations
+                    "id": len(annotations),
                     "image_id": i, # frame id
                     "category_id": 0,
-                    "bbox": box[:4],
-                    "track_id": box[-1],
+                    "bbox": box[:4].tolist(),
+                    "track_id": int(box[-1]),
                 })
-        print(annotations)
+            images.append({ # add image annotations
+                "id": i
+            })
+        markup = {
+            "images": images,
+            "annotations": annotations,
+            "categories": categories
+        }
+        markup_path = f'{Path(file_path).stem}.json'
+        with open(markup_path, 'w') as f:
+            json.dump(markup, f)
+        
+        """"
         if save_markup_video:
             output_path = os.path.join(
                 Path(file_path).parent, Path(file_path).stem + "_output.mp4"
             )
-            save_video(frames, width, height, fps, output_path)
+            save_video(file_path, markup_path, output_path)
+        """"
 
 
 if __name__ == "__main__":
@@ -48,7 +65,5 @@ if __name__ == "__main__":
     parser.add_argument("input_folder", type=str, help="path to the validation dataset")
     parser.add_argument("--visualize", action="store_true")
     args = parser.parse_args()
-    try:
-        markup_video(args.input_folder, args.visualize)
-    except BaseException as error:
-        print("An exception occurred: {}".format(error))
+    markup_video(args.input_folder, args.visualize)
+   
