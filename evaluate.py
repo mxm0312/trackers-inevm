@@ -9,7 +9,7 @@ from utils import *
 from track_algorithms import *
 
 
-def markup_video(input_folder: str, output_folder: str):
+def markup_video(detector_weights: str, input_folder: str, output_folder: str):
     # Get dataset files
     videos = get_files(input_folder, ["mov", "mp4"])
     print(f"dataset path: {input_folder}")
@@ -19,7 +19,7 @@ def markup_video(input_folder: str, output_folder: str):
         annotations = []
         images = []
         categories = [{"id": 1, "name": "objects"}]
-        tracker = SortTracker()  # Create tracker
+        tracker = SortTracker(detector_weights)  # Create tracker
         cap = cv2.VideoCapture(file_path)
         frames = get_video_frames(cap)  # Get video frames
         for i, frame in enumerate(
@@ -62,10 +62,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="evaluate.py", description="Creates markup for a given dataset"
     )
+    parser.add_argument("weights_path", type=str, help="path to the detector weight")
     parser.add_argument("input_folder", type=str, help="path to the validation dataset")
     parser.add_argument(
         "output_folder", type=str, help="path to the output, where to save markups"
     )
     parser.add_argument("--visualize", action="store_true")
     args = parser.parse_args()
-    markup_video(args.input_folder, args.output_folder)
+    markup_video(args.weights_path, args.input_folder, args.output_folder)

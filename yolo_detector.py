@@ -3,11 +3,11 @@ import numpy as np
 
 class YoloDetector:
 
-    def __init__(self):
-        self.detector = self.create_yolo()
+    def __init__(self, weights_path: str):
+        self.detector = self.create_yolo(weights_path)
 
-    def create_yolo(self):
-        yolo = yolov5.load("yolov5s.pt")
+    def create_yolo(self, weights_path: str):
+        yolo = yolov5.load(weights_path)
         yolo.conf = 0.3  # NMS confidence threshold
         yolo.iou = 0.5  # NMS IoU threshold
         yolo.agnostic = False  # NMS class-agnostic
