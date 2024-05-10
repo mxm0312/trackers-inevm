@@ -1,8 +1,0 @@
-filterpy==1.4.5
-#scikit-image==0.17.2
-#lap==0.4.0
-matplotlib
-opencv-python
-yolov5
-tqdm
-pycocotools==2.0.7
