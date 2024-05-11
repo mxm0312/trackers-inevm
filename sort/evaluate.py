@@ -18,7 +18,7 @@ def markup_video(detector_weights: str, input_folder: str, output_folder: str):
     print(f"dataset path: {input_folder}")
     print(f"{len(videos)} files")
     # Loop over the videos
-    for file_path in videos:
+    for file_path in tqdm(videos, desc="Loop over videos"):
         annotations = []
         images = []
         categories = [{"id": 1, "name": "objects"}]
