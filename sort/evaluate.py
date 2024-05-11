@@ -24,10 +24,11 @@ def markup_video(detector_weights: str, input_folder: str, output_folder: str):
         categories = [{"id": 1, "name": "objects"}]
         tracker = SortTracker(detector_weights)  # Create tracker
         cap = cv2.VideoCapture(file_path)
-        frames = get_video_frames(cap)  # Get video frames
-        for i, frame in enumerate(
-            tqdm(frames, desc=f"Loop over {Path(file_path).name} frames")
-        ):
+        id = 0
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
             results = tracker.track(frame)
             if results is None:
                 continue
@@ -35,13 +36,15 @@ def markup_video(detector_weights: str, input_folder: str, output_folder: str):
                 annotations.append(
                     {  # add box annotations
                         "id": len(annotations),
-                        "image_id": i,  # frame id
+                        "image_id": id,  # frame id
                         "category_id": 0,
                         "bbox": box[:4].tolist(),
                         "track_id": int(box[-1]),
                     }
                 )
-            images.append({"id": i})  # add image annotations
+            images.append({"id": id})  # add image annotations
+            id += 1
+        cap.release()
         markup = {
             "images": images,
             "annotations": annotations,
