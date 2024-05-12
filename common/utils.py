@@ -53,16 +53,16 @@ def get_files(directory: str, extension: List[str]) -> List[str]:
 
 def draw_frame_markup(box: np.ndarray, frame: np.ndarray, id: int) -> np.ndarray:
     frame = cv2.rectangle(
-        frame, (box[0], box[1]), (box[2], box[3]), (255, 0, 0), 3
+        frame, (box[0], box[1]), (box[2], box[3]), (255, 0, 0), 2
     )
-    return print_text(f"Obj {id}", frame, (box[0], box[1]))
+    return print_text(f"id: {id}", frame, (box[0], box[1]), (box[2], box[1] + 30))
 
 
-def print_text(label, img, tl):
+def print_text(label, img, tl, br):
     img = cv2.rectangle(
-        img, (tl[0], tl[1] - 60), (tl[0] + len(label) * 19 + 60, tl[1]), (255, 0, 0), -1
+        img, tl, br, (255, 0, 0), -1
     )
     img = cv2.putText(
-        img, label, (tl[0] + 5, tl[1]), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 5
+        img, label, (tl[0], tl[1] + 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 0
     )
     return img
