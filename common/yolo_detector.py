@@ -21,4 +21,4 @@ class YoloDetector:
         # parse results
         predictions = results.pred[0]
         boxes = predictions.numpy().astype(int)  # x1, y1, x2, y2, class_id
-        return np.array([box[:4] for box in boxes if box[-1] == 0])
+        return np.array([np.append(box[:4], [1, 1]) for box in boxes if box[-1] == 0])

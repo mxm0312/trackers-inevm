@@ -4,10 +4,7 @@ import sys
 sys.path.insert(0, '..')
 
 from common.yolo_detector import *
-
-class BaseTracker:
-    def track(self, frame: np.ndarray) -> np.ndarray:
-        pass
+from common.tracker_base import *
 
 class SortTracker(BaseTracker):
     def __init__(self, detector_weights_path: str):
