@@ -26,5 +26,7 @@ class ByteTracker(BaseTracker):
         if len(boxes) == 0:
             return None
         output = self.tracker.update(torch.tensor(boxes), "")
+        if len(output) == 0:
+            return None
         return output[:, 0:5].astype(int)
 
