@@ -9,15 +9,17 @@ def save_video(video_path, markup_path, output_path):
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))    # float `width`
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float `height`
     fps = cap.get(cv2.CAP_PROP_FPS)  # Video FPS
-    frames = get_video_frames(cap)   # Get video frames
-
     # open markup file
     with open(markup_path) as json_file:
         markup = json.load(json_file)
 
     fourcc = cv2.VideoWriter_fourcc("m", "p", "4", "v")
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-    for frame_num, frame in enumerate(frames):
+    frame_num = 0
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
         frame_annotations = [ann for ann in markup['annotations'] if ann['image_id'] == frame_num]
         boxes = [ann['bbox'] for ann in frame_annotations]
         ids = [ann['track_id'] for ann in frame_annotations]
@@ -26,7 +28,9 @@ def save_video(video_path, markup_path, output_path):
             frame = draw_frame_markup(box, frame, ids[i])
         frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # RGB -> BGR
         out.write(frame_bgr)
+        frame_num += 1
     out.release()
+    cap.release()
 
 def get_video_frames(cap):
     frames = []
