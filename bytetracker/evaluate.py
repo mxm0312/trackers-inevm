@@ -4,6 +4,7 @@ import argparse
 from tqdm import tqdm
 from typing import List
 from pathlib import Path
+from collections import defaultdict
 
 import sys
 sys.path.insert(0, '..')
@@ -13,15 +14,17 @@ from track_algorithms import *
 
 
 def markup_video(detector_weights: str, input_folder: str, output_folder: str):
+    final_markup = {'files': []}
     # Get dataset files
     videos = get_files(input_folder, ["mov", "mp4"])
     print(f"dataset path: {input_folder}")
     print(f"{len(videos)} files")
     # Loop over the videos
     for file_path in tqdm(videos, desc="Loop over videos"):
-        annotations = []
-        images = []
-        categories = [{"id": 1, "name": "objects"}]
+        # Markup for specific file
+        file_markup = {'file_name': Path(file_path).stem, 'file_chains': []} 
+        # Dict to store unique objects and their annotations through frames
+        obj2ann = defaultdict(list)
         tracker = ByteTracker(detector_weights)  # Create tracker
         cap = cv2.VideoCapture(file_path)
         id = 0
@@ -33,30 +36,37 @@ def markup_video(detector_weights: str, input_folder: str, output_folder: str):
             if results is None:
                 continue
             for box in results:
-                annotations.append(
-                    {  # add box annotations
-                        "id": len(annotations),
-                        "image_id": id,  # frame id
-                        "category_id": 0,
-                        "bbox": box[:4].tolist(),
-                        "track_id": int(box[-1]),
+                obj2ann[int(box[-1])].append(
+                    {
+                        'markup_frame': id,
+                        'markup_path': {
+                            'x': int(box[0]),
+                            'y': int(box[1]),
+                            'width': int(box[2] - box[0]),
+                            'height': int(box[3] - box[1])
+                        }
                     }
                 )
-            images.append({"id": id})  # add image annotations
             id += 1
+        for object_id in obj2ann:
+            chain = {
+                'chain_name': str(object_id),
+                'chain_id': object_id,
+                'chain_markups': obj2ann[object_id]
+            }
+            file_markup['file_chains'].append(chain)
+        final_markup['files'].append(file_markup)
         cap.release()
-        markup = {
-            "images": images,
-            "annotations": annotations,
-            "categories": categories,
-        }
+
         os.makedirs(f"{output_folder}", exist_ok=True)
         markup_path = f"{output_folder}/{Path(file_path).stem}.json"
         with open(markup_path, "w+") as f:
-            json.dump(markup, f)
+            json.dump(final_markup, f)
 
 
 if __name__ == "__main__":
+    import os
+    print(os.environ['input_data'])
     parser = argparse.ArgumentParser(
         prog="evaluate.py", description="Creates markup for a given dataset"
     )
