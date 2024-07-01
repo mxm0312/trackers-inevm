@@ -5,14 +5,13 @@ RUN pip install --upgrade pip setuptools
 RUN python --version
 RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
 
-RUN mkdir byte_tracker_demo
-RUN cd byte_tracker_demo
+WORKDIR /
 
-COPY . /byte_tracker_demo
+COPY .. /
 
-WORKDIR /byte_tracker_demo
+CMD cd /bytetracker
 
 RUN pip3 install numpy
-RUN pip3 install -r /byte_tracker_demo/requirements.txt
+RUN pip3 install -r ./requirements.txt
 
-CMD ["python", "main.py"]
+ENTRYPOINT ["python","./main.py"]

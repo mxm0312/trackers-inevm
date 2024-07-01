@@ -4,6 +4,7 @@ from evaluate import *
 
 YOLO_WEIGHTS_PATH = '../common/yolov5s.pt'
 OUTPUT_PATH = '../output'
+INPUT_PATH = '../input/'
 
 def main():
     parser = argparse.ArgumentParser()
@@ -12,7 +13,7 @@ def main():
     args = parser.parse_args()
 
     input_data = json.loads(args.input_data)
-    datasets = ["../input/" + dataset['dataset_name'] for dataset in input_data['datasets']]
+    datasets = [INPUT_PATH + dataset['dataset_name'] for dataset in input_data['datasets']]
     
     if not args.work_format_training:
         # Eval Model
