@@ -7,14 +7,23 @@ from pathlib import Path
 from collections import defaultdict
 
 import sys
-sys.path.insert(0, '..')
+
+sys.path.insert(0, "..")
 
 from common.utils import *
 from track_algorithms import *
 
 
-def markup_video(detector_weights: str, input_folder: str, output_folder: str):
-    final_markup = {'files': []}
+def evaluate(detector_weights: str, input_folder: str, output_folder: str):
+    '''
+    Evaluate ByteTracker on the given dataset, and save results to `output_folder`
+
+    Parameters:
+        detector_weights (str): Yolo weights
+        input_folder (str): Dataset path
+        output_folder (str): Output path where to save results from eval
+    '''
+    final_markup = {"files": []}
     # Get dataset files
     videos = get_files(input_folder, ["mov", "mp4"])
     print(f"dataset path: {input_folder}")
@@ -22,11 +31,12 @@ def markup_video(detector_weights: str, input_folder: str, output_folder: str):
     # Loop over the videos
     for file_path in tqdm(videos, desc="Loop over videos"):
         # Markup for specific file
-        file_markup = {'file_name': Path(file_path).stem, 'file_chains': []} 
+        file_markup = {"file_name": Path(file_path).name, "file_chains": []}
         # Dict to store unique objects and their annotations through frames
         obj2ann = defaultdict(list)
         tracker = ByteTracker(detector_weights)  # Create tracker
         cap = cv2.VideoCapture(file_path)
+        fps = cap.get(cv2.CAP_PROP_FPS)  # Video FPS (to calculate time)
         id = 0
         while cap.isOpened():
             ret, frame = cap.read()
@@ -35,38 +45,38 @@ def markup_video(detector_weights: str, input_folder: str, output_folder: str):
             results = tracker.track(frame)
             if results is None:
                 continue
-            for box in results:
-                obj2ann[int(box[-1])].append(
+            for object in results:
+                obj2ann[int(object[-1])].append(
                     {
-                        'markup_frame': id,
-                        'markup_path': {
-                            'x': int(box[0]),
-                            'y': int(box[1]),
-                            'width': int(box[2] - box[0]),
-                            'height': int(box[3] - box[1])
-                        }
+                        "markup_frame": id,
+                        "markup_time": round(id / fps, 2), # Время до сотых секунды
+                        "markup_path": {
+                            "x": int(object[0]),
+                            "y": int(object[1]),
+                            "width": int(object[2] - object[0]),
+                            "height": int(object[3] - object[1]),
+                        },
                     }
                 )
             id += 1
         for object_id in obj2ann:
             chain = {
-                'chain_name': str(object_id),
-                'chain_id': object_id,
-                'chain_markups': obj2ann[object_id]
+                "chain_name": str(object_id),
+                "chain_id": object_id,
+                "chain_markups": obj2ann[object_id],
             }
-            file_markup['file_chains'].append(chain)
-        final_markup['files'].append(file_markup)
+            file_markup["file_chains"].append(chain)
+        final_markup["files"].append(file_markup)
         cap.release()
 
-        os.makedirs(f"{output_folder}", exist_ok=True)
-        markup_path = f"{output_folder}/{Path(file_path).stem}.json"
-        with open(markup_path, "w+") as f:
-            json.dump(final_markup, f)
+    os.makedirs(f"{output_folder}", exist_ok=True)
+    markup_path = f"{output_folder}/{Path(input_folder).stem}_markup.json"
+    print(markup_path)
+    with open(markup_path, "w+") as f:
+        json.dump(final_markup, f, ensure_ascii=False)
 
-
+# __main__: FOR LOCAL TESTINIG ONLU
 if __name__ == "__main__":
-    import os
-    print(os.environ['input_data'])
     parser = argparse.ArgumentParser(
         prog="evaluate.py", description="Creates markup for a given dataset"
     )
@@ -76,4 +86,4 @@ if __name__ == "__main__":
         "output_folder", type=str, help="path to the output, where to save markups"
     )
     args = parser.parse_args()
-    markup_video(args.weights_path, args.input_folder, args.output_folder)
+    evaluate(args.weights_path, args.input_folder, args.output_folder)

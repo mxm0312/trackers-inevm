@@ -19,7 +19,7 @@ def main():
         # Eval Model
         for dataset in datasets:
             print(f'Iterating over {dataset} dataset')
-            markup_video(YOLO_WEIGHTS_PATH, dataset, OUTPUT_PATH)
+            evaluate(YOLO_WEIGHTS_PATH, dataset, OUTPUT_PATH)
     else:
         # Training mode
         pass
