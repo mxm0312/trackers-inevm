@@ -23,8 +23,16 @@ class ByteTracker(BaseTracker):
         self.tracker = BYTETracker(track_buffer=200)
 
     def track(self, frame: np.ndarray) -> np.ndarray:
+        """
+        Update objects
+
+        Parameters:
+            image (np.ndarray): Image
+        Returns:
+            arr (np.ndarray): Tracker result [x1, y1, x2, y2, id]
+        """
         boxes = self.detector.detect(frame)
-        if len(boxes) == 0:
+        if boxes is None:
             return None
         output = self.tracker.update(torch.tensor(boxes), "")
         if len(output) == 0:

@@ -15,14 +15,14 @@ from track_algorithms import *
 
 
 def evaluate(detector_weights: str, input_folder: str, output_folder: str):
-    '''
+    """
     Evaluate ByteTracker on the given dataset, and save results to `output_folder`
 
     Parameters:
         detector_weights (str): Yolo weights
         input_folder (str): Dataset path
         output_folder (str): Output path where to save results from eval
-    '''
+    """
     final_markup = {"files": []}
     # Get dataset files
     videos = get_files(input_folder, ["mov", "mp4"])
@@ -49,7 +49,7 @@ def evaluate(detector_weights: str, input_folder: str, output_folder: str):
                 obj2ann[int(object[-1])].append(
                     {
                         "markup_frame": id,
-                        "markup_time": round(id / fps, 2), # Время до сотых секунды
+                        "markup_time": round(id / fps, 2),  # Время до сотых секунды
                         "markup_path": {
                             "x": int(object[0]),
                             "y": int(object[1]),
@@ -75,7 +75,8 @@ def evaluate(detector_weights: str, input_folder: str, output_folder: str):
     with open(markup_path, "w+") as f:
         json.dump(final_markup, f, ensure_ascii=False)
 
-# __main__: FOR LOCAL TESTINIG ONLU
+
+# __main__: FOR LOCAL TESTINIG ONLY
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="evaluate.py", description="Creates markup for a given dataset"

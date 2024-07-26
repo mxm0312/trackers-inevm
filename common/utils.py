@@ -17,13 +17,10 @@ BOX_COLOR = [
     (128, 0, 128),  # фиолетовый
     (255, 192, 203),  # розовый
     (0, 0, 0),  # черный
-    (255, 255, 255),  # белый
     (128, 128, 128),  # серый
     (0, 206, 209),  # бирюзовый
     (128, 0, 0),  # пурпурный
     (255, 215, 0),  # золотой
-    (192, 192, 192),  # серебряный
-    (230, 230, 250),  # лавандовый
     (139, 0, 0),  # бордовый
     (153, 50, 204),  # лиловый
     (75, 0, 130),  # индиго
@@ -31,7 +28,7 @@ BOX_COLOR = [
 
 
 def save_video(video_path: str, markup_path: str, output_path: str):
-    '''
+    """
     Create new video in location from `output_path` with tracklets visualization from `markup_path`
 
     Parameters:
@@ -41,7 +38,7 @@ def save_video(video_path: str, markup_path: str, output_path: str):
 
         Returns:
             binary_sum (str): Binary string of the sum of a and b
-    '''
+    """
     video_name = Path(video_path).name
     cap = cv2.VideoCapture(video_path)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))  # float `width`
@@ -63,7 +60,7 @@ def save_video(video_path: str, markup_path: str, output_path: str):
     for id in ids:
         id2color[id] = random.choice(BOX_COLOR)
     # Loop over the frames
-    fourcc = cv2.VideoWriter_fourcc("m", "p", "4", "v")
+    fourcc = cv2.VideoWriter_fourcc(*"X264")
     out = cv2.VideoWriter(
         f"{output_path}/{Path(video_name).stem}_tracklets.mp4",
         fourcc,
@@ -103,7 +100,7 @@ def save_video(video_path: str, markup_path: str, output_path: str):
 
 
 def get_files(directory: str, extension: List[str]) -> List[str]:
-    '''
+    """
     Returns all files from the given directory (with specific extension)
 
     Parameters:
@@ -112,7 +109,7 @@ def get_files(directory: str, extension: List[str]) -> List[str]:
 
         Returns:
             list of files (List[str]): Binary string of the sum of a and b
-    '''
+    """
     file_paths = []
     for root, _, files in os.walk(directory):
         for file in files:
