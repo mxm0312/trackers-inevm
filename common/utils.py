@@ -32,8 +32,8 @@ def save_video(video_path: str, markup_path: str, output_path: str):
     Create new video in location from `output_path` with tracklets visualization from `markup_path`
 
     Parameters:
-        video_path (str): Path to the video
-        markup_path (str): Path to the markup
+        video_path (str): Path to the video file
+        markup_path (str): Path to the markup file
         output_path (str): Path to the output video (will be created after this method succeed)
 
         Returns:

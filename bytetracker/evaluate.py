@@ -14,6 +14,12 @@ from common.utils import *
 from track_algorithms import *
 
 
+def save_annotation(markup: dict, output_file: str):
+    print(f'Save results to: {output_file}')
+    with open(output_file, "w+") as f:
+        json.dump(markup, f, ensure_ascii=False)
+
+
 def evaluate(detector_weights: str, input_folder: str, output_folder: str):
     """
     Evaluate ByteTracker on the given dataset, and save results to `output_folder`
@@ -28,8 +34,9 @@ def evaluate(detector_weights: str, input_folder: str, output_folder: str):
     videos = get_files(input_folder, ["mov", "mp4"])
     print(f"dataset path: {input_folder}")
     print(f"{len(videos)} files")
+    os.makedirs(f"{output_folder}", exist_ok=True)
     # Loop over the videos
-    for file_path in tqdm(videos, desc="Loop over videos"):
+    for file_num, file_path in enumerate(tqdm(videos, desc="Loop over videos")):
         # Markup for specific file
         file_markup = {"file_name": Path(file_path).name, "file_chains": []}
         # Dict to store unique objects and their annotations through frames
@@ -68,23 +75,21 @@ def evaluate(detector_weights: str, input_folder: str, output_folder: str):
             file_markup["file_chains"].append(chain)
         final_markup["files"].append(file_markup)
         cap.release()
-
-    os.makedirs(f"{output_folder}", exist_ok=True)
-    markup_path = f"{output_folder}/{Path(input_folder).stem}_markup.json"
-    print(markup_path)
-    with open(markup_path, "w+") as f:
-        json.dump(final_markup, f, ensure_ascii=False)
-
+        # save annotations
+        markup_path = f"{output_folder}/{Path(input_folder).stem}_markup.json"
+        if file_num % 10 == 0 or file_num == len(videos) - 1:
+         save_annotation(final_markup, markup_path)
+    print(f'Markup completed!')
+    return
 
 # __main__: FOR LOCAL TESTINIG ONLY
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="evaluate.py", description="Creates markup for a given dataset"
     )
-    parser.add_argument("weights_path", type=str, help="path to the detector weight")
     parser.add_argument("input_folder", type=str, help="path to the validation dataset")
     parser.add_argument(
         "output_folder", type=str, help="path to the output, where to save markups"
     )
     args = parser.parse_args()
-    evaluate(args.weights_path, args.input_folder, args.output_folder)
+    evaluate(None, args.input_folder, args.output_folder)

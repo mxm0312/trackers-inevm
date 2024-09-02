@@ -2,9 +2,13 @@ from ultralytics import YOLO
 import numpy as np
 import torch
 
-PERSON_DET_ID = 0
+# YOLO config
+PERSON_ID = 0
+CLASSES = [PERSON_ID]
 PRETRAINED_YOLO = "yolov8n.pt"
-
+IMG_SIZE = 512
+# VERBOSE
+verbose = False
 
 class YoloDetector:
     def __init__(self, weights_path: str):
@@ -24,7 +28,7 @@ class YoloDetector:
             arr (np.ndarray): Detector result [x1, y1, x2, y2, confidence, class_id]
         """
         # perform inference
-        results = self.detector(image, verbose=False)
+        results = self.detector(image, classes=CLASSES, verbose=verbose)
         if not results:
             return None
         results = results[0].boxes
@@ -32,7 +36,6 @@ class YoloDetector:
         result_xyxy = results.xyxy
         res = []
         for i, box in enumerate(result_xyxy):
-            if results.cls[i] != PERSON_DET_ID:
-                continue
-            res.append(torch.cat((box, torch.Tensor([results.conf[i], 0])), 0).tolist())
-        return np.array(res)  # x1, y1, x2, y2, class_id
+            if box.shape == torch.Size([4]):
+                res.append(torch.cat((box, torch.Tensor([results.conf[i], PERSON_ID])), 0).tolist())
+        return np.array(res) if len(res) != 0 else None  # x1, y1, x2, y2, conf, class
