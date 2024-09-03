@@ -15,7 +15,7 @@ class YoloDetector:
         self.detector = self.create_yolo(weights_path)
 
     def create_yolo(self, weights_path: str):
-        model = YOLO(PRETRAINED_YOLO)
+        model = YOLO(weights_path)
         return model
 
     def detect(self, image: np.ndarray) -> np.ndarray:

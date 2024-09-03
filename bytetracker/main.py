@@ -2,7 +2,7 @@ import argparse
 import json
 from evaluate import *
 
-YOLO_WEIGHTS_PATH = "../common/yolov5s.pt"
+YOLO_WEIGHTS_PATH = "../common/yolov8n.pt"
 OUTPUT_PATH = "../output"
 INPUT_PATH = "../input/"
 
@@ -18,15 +18,13 @@ def main():
     args = parser.parse_args()
 
     input_data = json.loads(args.input_data)
-    datasets = [
-        INPUT_PATH + dataset["dataset_name"] for dataset in input_data["datasets"]
+    files = [
+        INPUT_PATH + path for path in input_data.keys()
     ]
-
     if not args.work_format_training:
         # Eval Model
-        for dataset in datasets:
-            print(f"Iterating over {dataset} dataset")
-            evaluate(YOLO_WEIGHTS_PATH, dataset, OUTPUT_PATH)
+        print(f"Iterating over {files} dataset")
+        evaluate(YOLO_WEIGHTS_PATH, files, OUTPUT_PATH)
     else:
         # Training mode
         pass
