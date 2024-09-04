@@ -11,6 +11,7 @@ import sys
 sys.path.insert(0, "..")
 
 from common.utils import *
+from common.container_status import ContainerStatus as CS
 from track_algorithms import *
 
 
@@ -20,7 +21,7 @@ def save_annotation(markup: dict, output_file: str):
         json.dump(markup, f, ensure_ascii=False, indent=4)
 
 
-def evaluate(detector_weights: str, files: List[str], output_folder: str):
+def evaluate(detector_weights: str, files: List[str], output_folder: str, host_web: str):
     """
     Evaluate ByteTracker on the given dataset, and save results to `output_folder`
 
@@ -29,10 +30,14 @@ def evaluate(detector_weights: str, files: List[str], output_folder: str):
         input_folder (str): Dataset path
         output_folder (str): Output path where to save results from eval
     """
+    # Init logger
+    cs = CS(host_web)
     final_markup = {"files": []}
     # Get dataset files
     os.makedirs(f"{output_folder}", exist_ok=True)
     # Loop over the videos
+    cs.post_start()
+    cs.post_progress()
     for file_num, file_path in enumerate(tqdm(files, desc="Loop over videos")):
         # Markup for specific file
         file_markup = {"file_name": Path(file_path).name, "file_chains": []}
@@ -77,6 +82,7 @@ def evaluate(detector_weights: str, files: List[str], output_folder: str):
         if file_num % 10 == 0 or file_num == len(files) - 1:
          save_annotation(final_markup, markup_path)
     print(f'Markup completed!')
+    cs.post_end()
     return
 
 # __main__: FOR LOCAL TESTINIG ONLY

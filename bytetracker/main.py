@@ -14,6 +14,9 @@ def main():
         "--input_data", required=True, help="JSON string with input data"
     )
     parser.add_argument(
+        "--host_web", required=True, help="host address for logger"
+    )
+    parser.add_argument(
         "--work_format_training", action="store_true", help="Flag for training mode"
     )
     args = parser.parse_args()
@@ -25,7 +28,7 @@ def main():
     if not args.work_format_training:
         # Eval Model
         print(f"Iterating over {files} dataset")
-        evaluate(YOLO_WEIGHTS_PATH, files, OUTPUT_PATH)
+        evaluate(YOLO_WEIGHTS_PATH, files, OUTPUT_PATH, args.host_web)
     else:
         train(OUTPUT_PATH)
 
