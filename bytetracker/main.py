@@ -1,6 +1,7 @@
 import argparse
 import json
 from evaluate import *
+from train import *
 
 YOLO_WEIGHTS_PATH = "../common/yolov8n.pt"
 OUTPUT_PATH = "../output"
@@ -26,8 +27,7 @@ def main():
         print(f"Iterating over {files} dataset")
         evaluate(YOLO_WEIGHTS_PATH, files, OUTPUT_PATH)
     else:
-        # Training mode
-        pass
+        train(OUTPUT_PATH)
 
 
 if __name__ == "__main__":
