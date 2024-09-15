@@ -32,7 +32,7 @@ class ContainerStatus():
 				containers[key] = value
 		return containers
 
-	def get_id(self, full = True):
+	def get_id(self, full:bool = True):
 		'''Получение полного id контейнера
 		'''
 		self.get_short_id()
@@ -43,7 +43,7 @@ class ContainerStatus():
 					self.full_id = id_
 					break
 		
-	def post(self, url, data = None):
+	def post(self, url:str, data:dict = {}):
 		'''Шаблон post запроса
 		Return: ответ на запрос
 		'''
@@ -56,35 +56,41 @@ class ContainerStatus():
 		finally:
 			return res
 		
-	def post_status(self, status):
+	def post_status(self, status:int, data:dict = None):
 		'''Шаблон post запроса со статусом
+		Args: 	status - № статуча из events
+				data - сообщение
 		Return: ответ на запрос
 		'''
-		return self.post(urljoin(self.host_web,self.events[status].format(self.full_id)))
+		return self.post(urljoin(self.host_web,self.events[status].format(self.full_id)),data)
 		
-	def post_start(self):
+	def post_start(self,data:dict = None):
 		'''Шаблон post запроса со статусом before_start
+		Args: 	data - сообщение пустое
 		Return: ответ на запрос
 		'''
-		return self.post_status(0)
+		return self.post_status(0, data)
 		
-	def post_progress(self):
+	def post_progress(self,data = None):
 		'''Шаблон post запроса со статусом on_progress
+		Args: 	data - сообщение формата {'on_progress':'0.xx'} - процент выполнения в виде десятичной дроби
 		Return: ответ на запрос
 		'''
-		return self.post_status(1)
+		return self.post_status(1,data)
 		
-	def post_error(self):
+	def post_error(self,data = None):
 		'''Шаблон post запроса со статусом on_error
+		Args: 	data - сообщение формата {'on_error':'error text'} - текст ошибки
 		Return: ответ на запрос
 		'''
-		return self.post_status(2)
+		return self.post_status(2,data)
 		
-	def post_end(self):
+	def post_end(self,data = None):
 		'''Шаблон post запроса со статусом before_end
+		Args: 	data - сообщение формата {'out_files':['xxx.json', 'yyy.json']} - имена выходных файлов
 		Return: ответ на запрос
 		'''
-		return self.post_status(3)
+		return self.post_status(3,data)
 
 def get_id():
 	'''Получение полного id контейнера

@@ -5,6 +5,7 @@ from tqdm import tqdm
 from typing import List
 from pathlib import Path
 from collections import defaultdict
+import uuid
 
 import sys
 
@@ -15,13 +16,19 @@ from common.container_status import ContainerStatus as CS
 from track_algorithms import *
 
 
+def generate_random_id():
+    return str(uuid.uuid4())
+
+
 def save_annotation(markup: dict, output_file: str):
-    print(f'Save results to: {output_file}')
+    print(f"Save results to: {output_file}")
     with open(output_file, "w+") as f:
         json.dump(markup, f, ensure_ascii=False, indent=4)
 
 
-def evaluate(detector_weights: str, files: List[str], output_folder: str, host_web: str):
+def evaluate(
+    detector_weights: str, files: List[str], output_folder: str, host_web: str
+):
     """
     Evaluate ByteTracker on the given dataset, and save results to `output_folder`
 
@@ -31,14 +38,14 @@ def evaluate(detector_weights: str, files: List[str], output_folder: str, host_w
         output_folder (str): Output path where to save results from eval
     """
     # Init logger
-    #cs = CS(host_web)
-    final_markup = {"files": []}
+    cs = CS(host_web)
     # Get dataset files
     os.makedirs(f"{output_folder}", exist_ok=True)
     # Loop over the videos
-    #cs.post_start()
-    #cs.post_progress()
+    cs.post_start()
+    output_files = []
     for file_num, file_path in enumerate(tqdm(files, desc="Loop over videos")):
+        final_markup = {"files": []}
         # Markup for specific file
         file_markup = {"file_name": Path(file_path).name, "file_chains": []}
         # Dict to store unique objects and their annotations through frames
@@ -57,6 +64,7 @@ def evaluate(detector_weights: str, files: List[str], output_folder: str, host_w
             for object in results:
                 obj2ann[int(object[-1])].append(
                     {
+                        "markup_id": generate_random_id(),
                         "markup_frame": id,
                         "markup_time": round(id / fps, 2),  # Время до сотых секунды
                         "markup_path": {
@@ -77,13 +85,19 @@ def evaluate(detector_weights: str, files: List[str], output_folder: str, host_w
             file_markup["file_chains"].append(chain)
         final_markup["files"].append(file_markup)
         cap.release()
+        # Send event to host
+        progress = file_num / len(files)
+        cs.post_progress({"on_progress": progress})
         # save annotations
-        markup_path = f"{output_folder}/output_markup.json"
-        if file_num % 10 == 0 or file_num == len(files) - 1:
-         save_annotation(final_markup, markup_path)
-    print(f'Markup completed!')
-    #cs.post_end()
+        output_file_name = f"{Path(file_path).name}.json"
+        markup_path = f"{output_folder}/{Path(file_path).name}.json"
+        save_annotation(final_markup, markup_path)
+        output_files.append(output_file_name)
+    print(f"Markup completed!")
+    # Log output files and final event
+    cs.post_end({"out_files": output_files})
     return
+
 
 # __main__: FOR LOCAL TESTINIG ONLY
 if __name__ == "__main__":
