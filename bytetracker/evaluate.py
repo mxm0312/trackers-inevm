@@ -43,11 +43,12 @@ def evaluate(
     os.makedirs(f"{output_folder}", exist_ok=True)
     # Loop over the videos
     cs.post_start()
+    cs.post_progress({"on_progress": 0})
     output_files = []
     for file_num, file_path in enumerate(tqdm(files, desc="Loop over videos")):
         final_markup = {"files": []}
         # Markup for specific file
-        file_markup = {"file_name": Path(file_path).name, "file_chains": []}
+        file_markup = {"file_name": Path(file_path).name, "file_id": generate_random_id(), "file_chains": []}
         # Dict to store unique objects and their annotations through frames
         obj2ann = defaultdict(list)
         tracker = ByteTracker(detector_weights)  # Create tracker
@@ -64,7 +65,6 @@ def evaluate(
             for object in results:
                 obj2ann[int(object[-1])].append(
                     {
-                        "markup_id": generate_random_id(),
                         "markup_frame": id,
                         "markup_time": round(id / fps, 2),  # Время до сотых секунды
                         "markup_path": {
@@ -79,23 +79,29 @@ def evaluate(
         for object_id in obj2ann:
             chain = {
                 "chain_name": str(object_id),
-                "chain_id": object_id,
+                # "chain_vector": ???,
                 "chain_markups": obj2ann[object_id],
             }
             file_markup["file_chains"].append(chain)
         final_markup["files"].append(file_markup)
         cap.release()
         # Send event to host
-        progress = file_num / len(files)
-        cs.post_progress({"on_progress": progress})
-        # save annotations
+        progress = round((file_num + 1) / len(files) * 100, 2)
         output_file_name = f"{Path(file_path).name}.json"
+        cs.post_progress(
+            {
+                "on_progress": progress,
+                "stage": 1,
+                "statistics": {"out_file": output_file_name},
+            }
+        )
+        # save annotations
         markup_path = f"{output_folder}/{Path(file_path).name}.json"
         save_annotation(final_markup, markup_path)
         output_files.append(output_file_name)
     print(f"Markup completed!")
     # Log output files and final event
-    cs.post_end({"out_files": output_files})
+    cs.post_end()
     return
 
 

@@ -7,6 +7,10 @@ YOLO_WEIGHTS_PATH = "../common/yolov8n.pt"
 OUTPUT_PATH = "../output"
 INPUT_PATH = "../input"
 
+def check_video_extension(video_path):
+    valid_extensions = {'avi', 'mp4', 'm4v', 'mov', 'mpg', 'mpeg', 'wmv'}
+    ext = os.path.splitext(video_path)[1][1:].lower()
+    return ext in valid_extensions
 
 def main():
     parser = argparse.ArgumentParser()
@@ -19,8 +23,12 @@ def main():
     files_in_directory = [
         os.path.join(INPUT_PATH, f)
         for f in os.listdir(INPUT_PATH)
-        if os.path.isfile(os.path.join(INPUT_PATH, f))
-        or os.path.islink(os.path.join(INPUT_PATH, f))
+        if (os.path.isfile(os.path.join(INPUT_PATH, f))
+        or os.path.islink(os.path.join(INPUT_PATH, f)))
+    ]
+    files_in_directory = [
+        file for file in files_in_directory
+        if check_video_extension(file)
     ]
 
     if not args.work_format_training:

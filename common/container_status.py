@@ -50,7 +50,7 @@ class ContainerStatus():
 		#print(url)
 		res = {}
 		try:
-			res = requests.post(url, data)
+			res = requests.post(url, json = data)
 		except Exception as e:
 			print("Error: " +str(e))
 		finally:
