@@ -2,6 +2,7 @@ import cv2
 import json
 from typing import List
 import numpy as np
+import uuid
 import random
 import os
 from pathlib import Path
@@ -25,6 +26,10 @@ BOX_COLOR = [
     (153, 50, 204),  # лиловый
     (75, 0, 130),  # индиго
 ]
+
+
+def generate_random_id():
+    return str(uuid.uuid4())
 
 
 def save_video(video_path: str, markup_path: str, output_path: str):

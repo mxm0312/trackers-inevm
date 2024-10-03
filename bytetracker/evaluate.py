@@ -2,10 +2,9 @@ import cv2
 import json
 import argparse
 from tqdm import tqdm
-from typing import List
+from typing import List, Dict
 from pathlib import Path
 from collections import defaultdict
-import uuid
 
 import sys
 
@@ -14,10 +13,9 @@ sys.path.insert(0, "..")
 from common.utils import *
 from common.container_status import ContainerStatus as CS
 from track_algorithms import *
+from common.status_utils import *
 
-
-def generate_random_id():
-    return str(uuid.uuid4())
+STAGE = 1
 
 
 def save_annotation(markup: dict, output_file: str):
@@ -43,12 +41,15 @@ def evaluate(
     os.makedirs(f"{output_folder}", exist_ok=True)
     # Loop over the videos
     cs.post_start()
-    cs.post_progress({"on_progress": 0})
-    output_files = []
+    cs.post_progress(generate_progress_data(0.0, STAGE))
     for file_num, file_path in enumerate(tqdm(files, desc="Loop over videos")):
         final_markup = {"files": []}
         # Markup for specific file
-        file_markup = {"file_name": Path(file_path).name, "file_id": generate_random_id(), "file_chains": []}
+        file_markup = {
+            "file_name": Path(file_path).name,
+            "file_id": generate_random_id(),
+            "file_chains": [],
+        }
         # Dict to store unique objects and their annotations through frames
         obj2ann = defaultdict(list)
         tracker = ByteTracker(detector_weights)  # Create tracker
@@ -88,17 +89,11 @@ def evaluate(
         # Send event to host
         progress = round((file_num + 1) / len(files) * 100, 2)
         output_file_name = f"{Path(file_path).name}.json"
-        cs.post_progress(
-            {
-                "on_progress": progress,
-                "stage": 1,
-                "statistics": {"out_file": output_file_name},
-            }
-        )
         # save annotations
         markup_path = f"{output_folder}/{Path(file_path).name}.json"
         save_annotation(final_markup, markup_path)
-        output_files.append(output_file_name)
+        if os.path.exists(file_path):
+            cs.post_progress(generate_progress_data(progress, STAGE, output_file_name))
     print(f"Markup completed!")
     # Log output files and final event
     cs.post_end()

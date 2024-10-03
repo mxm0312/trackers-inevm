@@ -10,6 +10,7 @@ IMG_SIZE = 512
 # VERBOSE
 verbose = False
 
+
 class YoloDetector:
     def __init__(self, weights_path: str):
         self.detector = self.create_yolo(weights_path)
@@ -37,5 +38,9 @@ class YoloDetector:
         res = []
         for i, box in enumerate(result_xyxy):
             if box.shape == torch.Size([4]):
-                res.append(torch.cat((box, torch.Tensor([results.conf[i], PERSON_ID])), 0).tolist())
+                res.append(
+                    torch.cat(
+                        (box, torch.Tensor([results.conf[i], PERSON_ID])), 0
+                    ).tolist()
+                )
         return np.array(res) if len(res) != 0 else None  # x1, y1, x2, y2, conf, class
