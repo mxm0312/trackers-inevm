@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict
 
 
 def generate_progress_data(
@@ -11,3 +11,6 @@ def generate_progress_data(
     if output_file is not None:
         data["statistics"] = {"out_file": output_file}
     return data
+
+def generate_error_data(msg: str) -> Dict:
+    return {'on_error':msg}

@@ -15,9 +15,6 @@ from common.container_status import ContainerStatus as CS
 from track_algorithms import *
 from common.status_utils import *
 
-STAGE = 1
-
-
 def save_annotation(markup: dict, output_file: str):
     print(f"Save results to: {output_file}")
     with open(output_file, "w+") as f:
@@ -41,7 +38,7 @@ def evaluate(
     os.makedirs(f"{output_folder}", exist_ok=True)
     # Loop over the videos
     cs.post_start()
-    cs.post_progress(generate_progress_data(0.0, STAGE))
+    cs.post_progress(generate_progress_data(0.0, 1))
     for file_num, file_path in enumerate(tqdm(files, desc="Loop over videos")):
         final_markup = {"files": []}
         # Markup for specific file
@@ -93,7 +90,10 @@ def evaluate(
         markup_path = f"{output_folder}/{Path(file_path).name}.json"
         save_annotation(final_markup, markup_path)
         if os.path.exists(file_path):
-            cs.post_progress(generate_progress_data(progress, STAGE, output_file_name))
+            cs.post_progress(generate_progress_data(progress, 1, output_file_name))
+        else:
+            cs.post_error(generate_error_data(f"Не удалось создать файл с разметкой для {output_file_name}"))
+            cs.post_progress(generate_progress_data(progress, 1))
     print(f"Markup completed!")
     # Log output files and final event
     cs.post_end()
