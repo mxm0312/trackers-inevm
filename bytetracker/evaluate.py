@@ -14,6 +14,7 @@ from common.utils import *
 from common.container_status import ContainerStatus as CS
 from track_algorithms import *
 from common.status_utils import *
+from embeddings.embedding_net import *
 
 def save_annotation(markup: dict, output_file: str):
     print(f"Save results to: {output_file}")
@@ -22,7 +23,11 @@ def save_annotation(markup: dict, output_file: str):
 
 
 def evaluate(
-    detector_weights: str, files: List[str], output_folder: str, host_web: str
+    detector_weights: str,
+    embed_model_path,
+    files: List[str],
+    output_folder: str,
+    host_web: str,
 ):
     """
     Evaluate ByteTracker on the given dataset, and save results to `output_folder`
@@ -36,9 +41,12 @@ def evaluate(
     cs = CS(host_web)
     # Get dataset files
     os.makedirs(f"{output_folder}", exist_ok=True)
+    # Create embedding model
+    emb_net = EmbeddingNet()
+    emb_net.load_state_dict(torch.load(embed_model_path, weights_only=True))
     # Loop over the videos
     cs.post_start()
-    cs.post_progress(generate_progress_data(0.0, 1))
+    cs.post_progress(generate_progress_data(0.0, "1"))
     for file_num, file_path in enumerate(tqdm(files, desc="Loop over videos")):
         final_markup = {"files": []}
         # Markup for specific file
@@ -49,6 +57,7 @@ def evaluate(
         }
         # Dict to store unique objects and their annotations through frames
         obj2ann = defaultdict(list)
+        obj2emb = defaultdict(list)
         tracker = ByteTracker(detector_weights)  # Create tracker
         cap = cv2.VideoCapture(file_path)
         fps = cap.get(cv2.CAP_PROP_FPS)  # Video FPS (to calculate time)
@@ -59,17 +68,28 @@ def evaluate(
                 break
             results = tracker.track(frame)
             if results is None:
+                id += 1
                 continue
             for object in results:
+                x, y, width, height = (
+                    max(0, int(object[0])),
+                    max(0, int(object[1])),
+                    min(frame.shape[1], int(object[2] - object[0])),
+                    min(frame.shape[0], int(object[3] - object[1])),
+                )
+                crop = frame[y : y + height, x : x + width] 
+                embedding = get_embedding(crop, emb_net)
+                obj2emb[int(object[-1])].append(embedding)
                 obj2ann[int(object[-1])].append(
                     {
                         "markup_frame": id,
                         "markup_time": round(id / fps, 2),  # Время до сотых секунды
+                        "markup_vector": embedding.tolist(),
                         "markup_path": {
-                            "x": int(object[0]),
-                            "y": int(object[1]),
-                            "width": int(object[2] - object[0]),
-                            "height": int(object[3] - object[1]),
+                            "x": x,
+                            "y": y,
+                            "width": width,
+                            "height": height,
                         },
                     }
                 )
@@ -77,7 +97,8 @@ def evaluate(
         for object_id in obj2ann:
             chain = {
                 "chain_name": str(object_id),
-                # "chain_vector": ???,
+                # Mean feature vector for object
+                "chain_vector": (sum(obj2emb[object_id]) / len(obj2emb[object_id])).tolist(),
                 "chain_markups": obj2ann[object_id],
             }
             file_markup["file_chains"].append(chain)
@@ -90,10 +111,14 @@ def evaluate(
         markup_path = f"{output_folder}/{Path(file_path).name}.json"
         save_annotation(final_markup, markup_path)
         if os.path.exists(file_path):
-            cs.post_progress(generate_progress_data(progress, 1, output_file_name))
+            cs.post_progress(generate_progress_data(progress, "1", output_file_name))
         else:
-            cs.post_error(generate_error_data(f"Не удалось создать файл с разметкой для {output_file_name}"))
-            cs.post_progress(generate_progress_data(progress, 1))
+            cs.post_error(
+                generate_error_data(
+                    f"Не удалось создать файл с разметкой для {output_file_name}"
+                )
+            )
+            cs.post_progress(generate_progress_data(progress, "1"))
     print(f"Markup completed!")
     # Log output files and final event
     cs.post_end()

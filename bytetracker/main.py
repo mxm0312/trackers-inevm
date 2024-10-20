@@ -4,13 +4,16 @@ from evaluate import *
 from train import *
 
 YOLO_WEIGHTS_PATH = "../common/yolov8n.pt"
+EMBEDDING_NET_PATH = "../common/mobilenet_v2.pt"
 OUTPUT_PATH = "../output"
 INPUT_PATH = "../input"
 
+
 def check_video_extension(video_path):
-    valid_extensions = {'avi', 'mp4', 'm4v', 'mov', 'mpg', 'mpeg', 'wmv'}
+    valid_extensions = {"avi", "mp4", "m4v", "mov", "mpg", "mpeg", "wmv"}
     ext = os.path.splitext(video_path)[1][1:].lower()
     return ext in valid_extensions
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -23,18 +26,25 @@ def main():
     files_in_directory = [
         os.path.join(INPUT_PATH, f)
         for f in os.listdir(INPUT_PATH)
-        if (os.path.isfile(os.path.join(INPUT_PATH, f))
-        or os.path.islink(os.path.join(INPUT_PATH, f)))
+        if (
+            os.path.isfile(os.path.join(INPUT_PATH, f))
+            or os.path.islink(os.path.join(INPUT_PATH, f))
+        )
     ]
     files_in_directory = [
-        file for file in files_in_directory
-        if check_video_extension(file)
+        file for file in files_in_directory if check_video_extension(file)
     ]
 
     if not args.work_format_training:
         # Eval Model
         print(f"Iterating over {files_in_directory} dataset")
-        evaluate(YOLO_WEIGHTS_PATH, files_in_directory, OUTPUT_PATH, args.host_web)
+        evaluate(
+            YOLO_WEIGHTS_PATH,
+            EMBEDDING_NET_PATH,
+            files_in_directory,
+            OUTPUT_PATH,
+            args.host_web,
+        )
     else:
         # Train Model
         output_file = f"{OUTPUT_PATH}/output.json"
