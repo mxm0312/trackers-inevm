@@ -16,10 +16,11 @@ from track_algorithms import *
 from common.status_utils import *
 from embeddings.embedding_net import *
 
+
 def save_annotation(markup: dict, output_file: str):
     print(f"Save results to: {output_file}")
     with open(output_file, "w+") as f:
-        json.dump(markup, f, ensure_ascii=False, indent=4)
+        json.dump(markup, f, ensure_ascii=False)
 
 
 def evaluate(
@@ -77,14 +78,14 @@ def evaluate(
                     min(frame.shape[1], int(object[2] - object[0])),
                     min(frame.shape[0], int(object[3] - object[1])),
                 )
-                crop = frame[y : y + height, x : x + width] 
+                crop = frame[y : y + height, x : x + width]
                 embedding = get_embedding(crop, emb_net)
                 obj2emb[int(object[-1])].append(embedding)
                 obj2ann[int(object[-1])].append(
                     {
                         "markup_frame": id,
                         "markup_time": round(id / fps, 2),  # Время до сотых секунды
-                        "markup_vector": embedding.tolist(),
+                        "markup_vector": np.round(embedding, 6).tolist(),
                         "markup_path": {
                             "x": x,
                             "y": y,
@@ -98,7 +99,9 @@ def evaluate(
             chain = {
                 "chain_name": str(object_id),
                 # Mean feature vector for object
-                "chain_vector": (sum(obj2emb[object_id]) / len(obj2emb[object_id])).tolist(),
+                "chain_vector": np.round(
+                    sum(obj2emb[object_id]) / len(obj2emb[object_id]), 6
+                ).tolist(),
                 "chain_markups": obj2ann[object_id],
             }
             file_markup["file_chains"].append(chain)
