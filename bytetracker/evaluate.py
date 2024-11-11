@@ -85,7 +85,7 @@ def evaluate(
                     {
                         "markup_frame": id,
                         "markup_time": round(id / fps, 2),  # Время до сотых секунды
-                        "markup_vector": np.round(embedding, 6).tolist(),
+                        "markup_vector": [round(float(x), 6) for x in embedding],
                         "markup_path": {
                             "x": x,
                             "y": y,
@@ -96,12 +96,14 @@ def evaluate(
                 )
             id += 1
         for object_id in obj2ann:
+            chain_vector = [
+                round(float(x), 6)
+                for x in sum(obj2emb[object_id]) / len(obj2emb[object_id])
+            ]
             chain = {
                 "chain_name": str(object_id),
                 # Mean feature vector for object
-                "chain_vector": np.round(
-                    sum(obj2emb[object_id]) / len(obj2emb[object_id]), 6
-                ).tolist(),
+                "chain_vector": chain_vector,
                 "chain_markups": obj2ann[object_id],
             }
             file_markup["file_chains"].append(chain)

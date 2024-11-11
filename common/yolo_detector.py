@@ -17,6 +17,7 @@ class YoloDetector:
 
     def create_yolo(self, weights_path: str):
         model = YOLO(weights_path)
+        model.to('cuda')
         return model
 
     def detect(self, image: np.ndarray) -> np.ndarray:

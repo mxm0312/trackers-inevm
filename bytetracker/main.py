@@ -3,8 +3,8 @@ import json
 from evaluate import *
 from train import *
 
-YOLO_WEIGHTS_PATH = "../common/yolov8n.pt"
-EMBEDDING_NET_PATH = "../common/mobilenet_v2.pt"
+YOLO_WEIGHTS_PATH = "../weights/yolov8n.pt"
+EMBEDDING_NET_PATH = "../weights/mobilenet_v2.pt"
 OUTPUT_PATH = "../output"
 INPUT_PATH = "../input"
 

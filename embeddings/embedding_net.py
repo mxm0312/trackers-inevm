@@ -10,6 +10,7 @@ class EmbeddingNet(nn.Module):
     def __init__(self, emb_size=128):
         super(EmbeddingNet, self).__init__()
         self.model = models.mobilenet_v2()
+        self.model.to('cuda')
         self.resize = torchvision.transforms.Resize((1, 128))
         self.model.eval()
 
