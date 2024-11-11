@@ -7,9 +7,9 @@ RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y && apt-get inst
 
 WORKDIR /
 
-COPY common /
-COPY bytetracker /
-COPY embeddings /
+COPY common/ ./common/
+COPY bytetracker/ ./bytetracker/
+COPY embeddings/ ./embeddings/
 
 RUN pip3 install numpy==1.25
 RUN pip3 install -r /bytetracker/requirements.txt
