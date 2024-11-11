@@ -31,7 +31,7 @@ def preprocess_image(image):
     )
     image_tensor = normalize(image_tensor)
     image_tensor = image_tensor.unsqueeze(0)
-    return image_tensor
+    return image_tensor.cuda()
 
 
 def get_embedding(image: np.ndarray, model):
