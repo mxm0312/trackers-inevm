@@ -41,7 +41,7 @@ class YoloDetector:
             if box.shape == torch.Size([4]):
                 res.append(
                     torch.cat(
-                        (box, torch.Tensor([results.conf[i], PERSON_ID])), 0
+                        (box.cpu(), torch.Tensor([results.conf[i], PERSON_ID])), 0
                     ).tolist()
                 )
         return np.array(res) if len(res) != 0 else None  # x1, y1, x2, y2, conf, class

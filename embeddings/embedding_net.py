@@ -17,7 +17,7 @@ class EmbeddingNet(nn.Module):
     def forward(self, x):
         x = self.model(x)
         x = self.resize(x.unsqueeze(0)).squeeze(0)
-        return x
+        return x.cpu()
 
 
 def preprocess_image(image):
