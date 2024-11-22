@@ -1,12 +1,37 @@
 import argparse
+import os
 import json
+from typing import List
 from evaluate import *
 from train import *
 
-YOLO_WEIGHTS_PATH = "../weights/yolov8n.pt"
-EMBEDDING_NET_PATH = "../weights/mobilenet_v2.pt"
+YOLO_WEIGHTS_PATH = "../weights/yolo.pt"
+EMBEDDING_NET_PATH = "../weights/mobilenet.pt"
 OUTPUT_PATH = "../output"
 INPUT_PATH = "../input"
+MARKUPS_PATH = "../markups"
+
+
+def get_markups(directory_path: str) -> List[VideoSample]:
+    samples = []
+    for filename in os.listdir(directory_path):
+        if filename.endswith(".json"):
+            file_path = os.path.join(directory_path, filename)
+            try:
+                with open(file_path, "r", encoding="utf-8") as file:
+                    data = json.load(file)
+                    file_anns = data["files"][0]
+                    name = file_anns["file_name"].split("/")[-1]
+                    samples.append(
+                        VideoSample(
+                            f"{INPUT_PATH}/{name}",
+                            file_anns["file_id"],
+                            file_anns["file_subset"],
+                        )
+                    )
+            except Exception as e:
+                print(f"Error reading {file_path}: {e}")
+    return samples
 
 
 def check_video_extension(video_path):
@@ -23,25 +48,28 @@ def main():
     )
     args = parser.parse_args()
 
-    files_in_directory = [
-        os.path.join(INPUT_PATH, f)
-        for f in os.listdir(INPUT_PATH)
+    # Get video samples from /markups
+    video_samples = get_markups(MARKUPS_PATH)
+    # Filter samples
+    video_samples = [
+        sample
+        for sample in video_samples
         if (
-            os.path.isfile(os.path.join(INPUT_PATH, f))
-            or os.path.islink(os.path.join(INPUT_PATH, f))
+            (
+                os.path.isfile(os.path.join(INPUT_PATH, sample.file_name))
+                or os.path.islink(os.path.join(INPUT_PATH, sample.file_name))
+            )
+            and check_video_extension(sample.file_name)
         )
-    ]
-    files_in_directory = [
-        file for file in files_in_directory if check_video_extension(file)
     ]
 
     if not args.work_format_training:
         # Eval Model
-        print(f"Iterating over {files_in_directory} dataset")
+        print(f"Iterating over dataset")
         evaluate(
             YOLO_WEIGHTS_PATH,
             EMBEDDING_NET_PATH,
-            files_in_directory,
+            video_samples,
             OUTPUT_PATH,
             args.host_web,
         )

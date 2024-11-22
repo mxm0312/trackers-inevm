@@ -16,8 +16,9 @@ class YoloDetector:
         self.detector = self.create_yolo(weights_path)
 
     def create_yolo(self, weights_path: str):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = YOLO(weights_path)
-        model.to('cuda')
+        model.to(self.device)
         return model
 
     def detect(self, image: np.ndarray) -> np.ndarray:

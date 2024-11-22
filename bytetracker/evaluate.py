@@ -5,6 +5,8 @@ from tqdm import tqdm
 from typing import List, Dict
 from pathlib import Path
 from collections import defaultdict
+from dataclasses import dataclass
+import pdb
 
 import sys
 
@@ -17,6 +19,13 @@ from common.status_utils import *
 from embeddings.embedding_net import *
 
 
+@dataclass
+class VideoSample:
+    file_name: str
+    file_id: str
+    file_subset: str
+
+
 def save_annotation(markup: dict, output_file: str):
     print(f"Save results to: {output_file}")
     with open(output_file, "w+") as f:
@@ -26,7 +35,7 @@ def save_annotation(markup: dict, output_file: str):
 def evaluate(
     detector_weights: str,
     embed_model_path,
-    files: List[str],
+    files: List[VideoSample],
     output_folder: str,
     host_web: str,
 ):
@@ -48,19 +57,20 @@ def evaluate(
     # Loop over the videos
     cs.post_start()
     cs.post_progress(generate_progress_data(0.0, "1"))
-    for file_num, file_path in enumerate(tqdm(files, desc="Loop over videos")):
+    for file_num, sample in enumerate(tqdm(files, desc="Loop over videos")):
         final_markup = {"files": []}
         # Markup for specific file
         file_markup = {
-            "file_name": Path(file_path).name,
-            "file_id": generate_random_id(),
+            "file_name": sample.file_name,
+            "file_id": sample.file_id,
+            "file_subset": sample.file_subset,
             "file_chains": [],
         }
         # Dict to store unique objects and their annotations through frames
         obj2ann = defaultdict(list)
         obj2emb = defaultdict(list)
         tracker = ByteTracker(detector_weights)  # Create tracker
-        cap = cv2.VideoCapture(file_path)
+        cap = cv2.VideoCapture(sample.file_name)
         fps = cap.get(cv2.CAP_PROP_FPS)  # Video FPS (to calculate time)
         id = 0
         while cap.isOpened():
@@ -79,7 +89,7 @@ def evaluate(
                     min(frame.shape[0], int(object[3] - object[1])),
                 )
                 crop = frame[y : y + height, x : x + width]
-                embedding = get_embedding(crop, emb_net)
+                embedding = emb_net.get_embedding(crop)
                 obj2emb[int(object[-1])].append(embedding)
                 obj2ann[int(object[-1])].append(
                     {
@@ -111,11 +121,11 @@ def evaluate(
         cap.release()
         # Send event to host
         progress = round((file_num + 1) / len(files) * 100, 2)
-        output_file_name = f"{Path(file_path).name}.json"
+        output_file_name = f"{Path(sample.file_name).name}.json"
         # save annotations
-        markup_path = f"{output_folder}/{Path(file_path).name}.json"
+        markup_path = f"{output_folder}/{Path(sample.file_name).name}.json"
         save_annotation(final_markup, markup_path)
-        if os.path.exists(file_path):
+        if os.path.exists(sample.file_name):
             cs.post_progress(generate_progress_data(progress, "1", output_file_name))
         else:
             cs.post_error(
