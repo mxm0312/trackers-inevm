@@ -63,20 +63,20 @@ def main():
         )
     ]
 
-    if not args.work_format_training:
-        # Eval Model
-        print(f"Iterating over dataset")
-        evaluate(
-            YOLO_WEIGHTS_PATH,
-            EMBEDDING_NET_PATH,
-            video_samples,
-            OUTPUT_PATH,
-            args.host_web,
-        )
-    else:
-        # Train Model
-        output_file = f"{OUTPUT_PATH}/output.json"
-        train(OUTPUT_PATH, output_file, args.host_web)
+    #if not args.work_format_training:
+   # Eval Model
+    print(f"Iterating over dataset")
+    evaluate(
+        YOLO_WEIGHTS_PATH,
+        EMBEDDING_NET_PATH,
+        video_samples,
+        OUTPUT_PATH,
+        args.host_web,
+    )
+    #else:
+    #    # Train Model
+    #    output_file = f"{OUTPUT_PATH}/output.json"
+    #    train(OUTPUT_PATH, output_file, args.host_web)
 
 
 if __name__ == "__main__":
