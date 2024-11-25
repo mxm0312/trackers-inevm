@@ -36,4 +36,4 @@ class EmbeddingNet(nn.Module):
     def get_embedding(self, image: np.ndarray):
         prepr_img = self.preprocess_image(image)
         embedding = self.model(prepr_img)
-        return embedding.squeeze(0).detach().numpy()
+        return embedding.squeeze(0).cpu().detach().numpy()
