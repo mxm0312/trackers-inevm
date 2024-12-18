@@ -1,5 +1,5 @@
 import json
-from sample import VideoSample
+from common.sample import VideoSample
 from typing import List
 import os
 import subprocess

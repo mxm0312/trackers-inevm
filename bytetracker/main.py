@@ -36,8 +36,8 @@ def main():
         for sample in video_samples
         if (
             (
-                os.path.isfile(os.path.join(INPUT_PATH, sample.file_name))
-                or os.path.islink(os.path.join(INPUT_PATH, sample.file_name))
+                os.path.isfile(sample.file_name)
+                or os.path.islink(sample.file_name)
             )
             and check_video_extension(sample.file_name)
         )

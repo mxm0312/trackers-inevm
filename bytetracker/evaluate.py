@@ -25,17 +25,17 @@ def save_annotation(markup: dict, output_file: str):
         json.dump(markup, f, ensure_ascii=False)
 
 
-def is_valid_paths(cs, progress, paths: List[str]):
+def is_valid_paths(cs, paths: List[str]):
     for path in paths:
         if not os.path.exists(path):
+            error_msg = f"Модель по указанному пути не найдена: {path}"
             cs.post_error(
-                generate_error_data(f"Модель по указанному пути не найдена: {path}")
+                generate_error_data(error_msg)
             )
-            cs.post_progress(generate_progress_data(progress, "1"))
             cs.post_end()
+            print(error_msg)
             return False
     return True
-
 
 def evaluate(
     detector_weights: str,
@@ -59,7 +59,7 @@ def evaluate(
     # Create embedding model
     cs.post_start()
     cs.post_progress(generate_progress_data(0.0, "1"))
-    if not is_valid_paths(cs, progress, [detector_weights, embed_model_path]):
+    if not is_valid_paths(cs, [detector_weights, embed_model_path]):
         return
     emb_net = EmbeddingNet()
     emb_net.load_state_dict(torch.load(embed_model_path, weights_only=True))
