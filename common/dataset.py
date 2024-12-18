@@ -167,7 +167,7 @@ class DataHandler:
     def create_yaml_data():
         # Данные для YAML файла
         return {
-            "path": "det_dataset",
+            "path": "../output/det_dataset",
             "train": "images/train",
             "val": "images/val",
             "test": None,  # test images (optional)
