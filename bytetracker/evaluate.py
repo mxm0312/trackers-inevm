@@ -5,8 +5,6 @@ from tqdm import tqdm
 from typing import List, Dict
 from pathlib import Path
 from collections import defaultdict
-from dataclasses import dataclass
-import pdb
 
 import sys
 
@@ -17,19 +15,26 @@ from common.container_status import ContainerStatus as CS
 from track_algorithms import *
 from common.status_utils import *
 from embeddings.embedding_net import *
-
-
-@dataclass
-class VideoSample:
-    file_name: str
-    file_id: str
-    file_subset: str
+from common.video_processor import get_frame_times
+from common.sample import VideoSample
 
 
 def save_annotation(markup: dict, output_file: str):
     print(f"Save results to: {output_file}")
     with open(output_file, "w+") as f:
         json.dump(markup, f, ensure_ascii=False)
+
+
+def is_valid_paths(cs, progress, paths: List[str]):
+    for path in paths:
+        if not os.path.exists(path):
+            cs.post_error(
+                generate_error_data(f"Модель по указанному пути не найдена: {path}")
+            )
+            cs.post_progress(generate_progress_data(progress, "1"))
+            cs.post_end()
+            return False
+    return True
 
 
 def evaluate(
@@ -52,11 +57,13 @@ def evaluate(
     # Get dataset files
     os.makedirs(f"{output_folder}", exist_ok=True)
     # Create embedding model
+    cs.post_start()
+    cs.post_progress(generate_progress_data(0.0, "1"))
+    if not is_valid_paths(cs, progress, [detector_weights, embed_model_path]):
+        return
     emb_net = EmbeddingNet()
     emb_net.load_state_dict(torch.load(embed_model_path, weights_only=True))
     # Loop over the videos
-    cs.post_start()
-    cs.post_progress(generate_progress_data(0.0, "1"))
     for file_num, sample in enumerate(tqdm(files, desc="Loop over videos")):
         final_markup = {"files": []}
         # Markup for specific file
@@ -71,8 +78,8 @@ def evaluate(
         obj2emb = defaultdict(list)
         tracker = ByteTracker(detector_weights)  # Create tracker
         cap = cv2.VideoCapture(sample.file_name)
-        fps = cap.get(cv2.CAP_PROP_FPS)  # Video FPS (to calculate time)
         id = 0
+        times = get_frame_times(sample.file_name)
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
@@ -94,7 +101,7 @@ def evaluate(
                 obj2ann[int(object[-1])].append(
                     {
                         "markup_frame": id,
-                        "markup_time": round(id / fps, 2),  # Время до сотых секунды
+                        "markup_time": round(times[id], 2),  # Время до сотых секунды
                         "markup_vector": [round(float(x), 6) for x in embedding],
                         "markup_path": {
                             "x": x,
@@ -138,17 +145,3 @@ def evaluate(
     # Log output files and final event
     cs.post_end()
     return
-
-
-# __main__: FOR LOCAL TESTINIG ONLY
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        prog="evaluate.py", description="Creates markup for a given dataset"
-    )
-    parser.add_argument("weights", type=str, help="weights to yolo model")
-    parser.add_argument("input_folder", type=str, help="path to the validation dataset")
-    parser.add_argument(
-        "output_folder", type=str, help="path to the output, where to save markups"
-    )
-    args = parser.parse_args()
-    evaluate(args.weights, args.input_folder, args.output_folder)

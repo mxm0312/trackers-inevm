@@ -4,52 +4,32 @@ import json
 from typing import List
 from evaluate import *
 from train import *
+from common.video_processor import check_video_extension, get_markups
 
-YOLO_WEIGHTS_PATH = "../weights/yolo.pt"
-EMBEDDING_NET_PATH = "../weights/mobilenet.pt"
+YOLO_WEIGHTS_DEFAULT_PATH = "../weights/yolo.pt"
+EMBEDDING_NET_DEFAULT_PATH = "../weights/mobilenet.pt"
 OUTPUT_PATH = "../output"
 INPUT_PATH = "../input"
 MARKUPS_PATH = "../markups"
-
-
-def get_markups(directory_path: str) -> List[VideoSample]:
-    samples = []
-    for filename in os.listdir(directory_path):
-        if filename.endswith(".json"):
-            file_path = os.path.join(directory_path, filename)
-            try:
-                with open(file_path, "r", encoding="utf-8") as file:
-                    data = json.load(file)
-                    file_anns = data["files"][0]
-                    name = file_anns["file_name"].split("/")[-1]
-                    samples.append(
-                        VideoSample(
-                            f"{INPUT_PATH}/{name}",
-                            file_anns["file_id"],
-                            file_anns["file_subset"],
-                        )
-                    )
-            except Exception as e:
-                print(f"Error reading {file_path}: {e}")
-    return samples
-
-
-def check_video_extension(video_path):
-    valid_extensions = {"avi", "mp4", "m4v", "mov", "mpg", "mpeg", "wmv"}
-    ext = os.path.splitext(video_path)[1][1:].lower()
-    return ext in valid_extensions
+# Input data keys
+DETECTOR_PATH = "det_path"
+EMBEDDER_PATH = "emb_path"
 
 
 def main():
     parser = argparse.ArgumentParser()
+    # Parse launch arguments
     parser.add_argument("--host_web", required=True, help="host address for logger")
     parser.add_argument(
         "--work_format_training", action="store_true", help="Flag for training mode"
     )
+    parser.add_argument(
+        "--input_data", required=False, help="JSON string with input data"
+    )
     args = parser.parse_args()
-
+    input_data = json.loads(args.input_data) if args.input_data else {}
     # Get video samples from /markups
-    video_samples = get_markups(MARKUPS_PATH)
+    video_samples = get_markups(INPUT_PATH, MARKUPS_PATH)
     # Filter samples
     video_samples = [
         sample
@@ -62,21 +42,27 @@ def main():
             and check_video_extension(sample.file_name)
         )
     ]
-
-    #if not args.work_format_training:
-   # Eval Model
-    print(f"Iterating over dataset")
-    evaluate(
-        YOLO_WEIGHTS_PATH,
-        EMBEDDING_NET_PATH,
-        video_samples,
-        OUTPUT_PATH,
-        args.host_web,
-    )
-    #else:
-    #    # Train Model
-    #    output_file = f"{OUTPUT_PATH}/output.json"
-    #    train(OUTPUT_PATH, output_file, args.host_web)
+    # Get models paths
+    det_path = input_data.get(DETECTOR_PATH, YOLO_WEIGHTS_DEFAULT_PATH)
+    emb_path = input_data.get(EMBEDDER_PATH, EMBEDDING_NET_DEFAULT_PATH)
+    # Launch Train / Val mode
+    if not args.work_format_training:
+        print(f"Evaluatiion mode")
+        evaluate(
+            det_path, emb_path, video_samples, OUTPUT_PATH, args.host_web,
+        )
+    else:
+        print(f"Train mode")
+        train(
+            Path(MARKUPS_PATH),
+            Path(det_path),
+            Path(OUTPUT_PATH),
+            args.host_web,
+            input_data,
+        )
+        evaluate(
+            det_path, emb_path, video_samples, OUTPUT_PATH, args.host_web,
+        )
 
 
 if __name__ == "__main__":

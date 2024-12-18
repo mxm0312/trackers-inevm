@@ -6,6 +6,8 @@ import uuid
 import random
 import os
 from pathlib import Path
+import time
+import subprocess
 
 BOX_COLOR = [
     (255, 255, 0),  # желтый
