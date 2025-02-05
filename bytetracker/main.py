@@ -9,8 +9,8 @@ from common.video_processor import check_video_extension, get_markups
 YOLO_WEIGHTS_DEFAULT_PATH = "../weights/yolo.pt"
 EMBEDDING_NET_DEFAULT_PATH = "../weights/mobilenet.pt"
 OUTPUT_PATH = "../output"
-INPUT_PATH = "../input"
-MARKUPS_PATH = "../markups"
+INPUT_PATH = "../input_videos"
+MARKUPS_PATH = "../input_data"
 # Input data keys
 DETECTOR_PATH = "det_path"
 EMBEDDER_PATH = "emb_path"
@@ -60,9 +60,7 @@ def main():
             args.host_web,
             input_data,
         )
-        evaluate(
-            det_path, emb_path, video_samples, OUTPUT_PATH, args.host_web,
-        )
+        
 
 
 if __name__ == "__main__":

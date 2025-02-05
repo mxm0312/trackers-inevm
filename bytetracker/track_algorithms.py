@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from bytetracker import BYTETracker
 import sys
+from typing import Tuple
 
 sys.path.insert(0, "..")
 from common.tracker_base import *
@@ -22,19 +23,20 @@ class ByteTracker(BaseTracker):
         self.detector = YoloDetector(detector_weights_path)
         self.tracker = BYTETracker(track_buffer=200)
 
-    def track(self, frame: np.ndarray) -> np.ndarray:
+    def track(self, frame: np.ndarray) -> Tuple[np.ndarray, float]:
         """
         Update objects
 
         Parameters:
             image (np.ndarray): Image
         Returns:
-            arr (np.ndarray): Tracker result [x1, y1, x2, y2, id]
+            arr (np.ndarray): Tracker result [x1, y1, x2, y2, id], confidence
         """
-        boxes = self.detector.detect(frame)
+        boxes = self.detector.detect(frame)  
+        # boxes: [x1, y1, x2, y2, conf, id]
         if boxes is None:
-            return None
+            return None, None
         output = self.tracker.update(torch.tensor(boxes), "")
         if len(output) == 0:
-            return None
-        return output[:, 0:5]
+            return None, None
+        return output[:, 0:5], boxes[:, 4]

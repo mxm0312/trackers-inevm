@@ -84,11 +84,11 @@ def evaluate(
             ret, frame = cap.read()
             if not ret:
                 break
-            results = tracker.track(frame)
+            results, confidences = tracker.track(frame)
             if results is None:
                 id += 1
                 continue
-            for object in results:
+            for obj_num, object in enumerate(results):
                 x, y, width, height = (
                     max(0, int(object[0])),
                     max(0, int(object[1])),
@@ -103,6 +103,7 @@ def evaluate(
                         "markup_frame": id,
                         "markup_time": round(times[id], 2),  # Время до сотых секунды
                         "markup_vector": [round(float(x), 6) for x in embedding],
+                        "markup_confidence": round(confidences[obj_num], 6),
                         "markup_path": {
                             "x": x,
                             "y": y,
@@ -117,11 +118,16 @@ def evaluate(
                 round(float(x), 6)
                 for x in sum(obj2emb[object_id]) / len(obj2emb[object_id])
             ]
+            chain_confidence = sum([
+                chain["markup_confidence"]
+                for chain in obj2ann[object_id]
+            ]) / len(obj2ann[object_id])
             chain = {
                 "chain_name": str(object_id),
                 # Mean feature vector for object
                 "chain_vector": chain_vector,
                 "chain_markups": obj2ann[object_id],
+                "chain_confidence": chain_confidence
             }
             file_markup["file_chains"].append(chain)
         final_markup["files"].append(file_markup)
