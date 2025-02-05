@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import os
 import shutil
 
-INPUT_PATH = "../input"
+INPUT_PATH = "../input_videos"
 
 import sys
 
