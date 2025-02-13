@@ -3,7 +3,7 @@ import json
 import os
 import numpy as np
 
-confs = set()
+confs = []
 
 def get_json_files(directory):
     json_files = []
@@ -25,7 +25,7 @@ def read_json_files(json_files):
                 markups = chain["chain_markups"]
                 for ann in markups:
                     conf = round(ann["markup_confidence"], 2)
-                    confs.add(conf)
+                    confs.append(conf)
             print(f"confs set = {confs}")
         except Exception as e:
             print(f"Error reading {file}: {e}")
@@ -40,7 +40,7 @@ def save_confidences(output_dir, input_dir):
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump({
           "hist": histogram,
-          "confs": list(confs)
+          "confs": confs
         }, f, indent=4, ensure_ascii=False)
     print(f"Confidences saved to {output_path}")
 
