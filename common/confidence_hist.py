@@ -30,8 +30,9 @@ def read_json_files(json_files):
         except Exception as e:
             print(f"Error reading {file}: {e}")
 
-def save_confidences(output_dir):
-    output_path = os.path.join(output_dir, "confidences.json")
+def save_confidences(output_dir, input_dir):
+    input_dir_name = os.path.basename(os.path.normpath(input_dir))
+    output_path = os.path.join(output_dir, f"{input_dir_name}.json")
     bins = np.arange(0, 1.05, 0.05)  # Интервалы для гистограммы
     histogram, _ = np.histogram(list(confs), bins=bins)
     histogram_data = {f"{round(bins[i+1], 2)}-{round(bins[i], 2)}": int(histogram[i]) for i in range(len(histogram))}
@@ -58,7 +59,7 @@ def main():
     
     if args.output_dir:
         os.makedirs(args.output_dir, exist_ok=True)
-        save_confidences(args.output_dir)
+        save_confidences(args.output_dir, args.dir)
 
 if __name__ == "__main__":
     main()
