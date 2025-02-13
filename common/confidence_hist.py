@@ -39,7 +39,7 @@ def save_confidences(output_dir, input_dir):
     
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump({
-          "hist": histogram,
+          "hist": histogram.tolist(),
           "confs": confs
         }, f, indent=4, ensure_ascii=False)
     print(f"Confidences saved to {output_path}")
