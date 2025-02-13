@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import numpy as np
+from pathlib import Path
 
 confs = []
 
@@ -26,12 +27,11 @@ def read_json_files(json_files):
                 for ann in markups:
                     conf = round(ann["markup_confidence"], 2)
                     confs.append(conf)
-            print(f"confs set = {confs}")
         except Exception as e:
             print(f"Error reading {file}: {e}")
 
 def save_confidences(output_dir, input_dir):
-    input_dir_name = os.path.basename(os.path.normpath(input_dir))
+    input_dir_name = Path(input_dir).parent.parent.name
     output_path = os.path.join(output_dir, f"{input_dir_name}.json")
     bins = np.arange(0, 1.05, 0.05)  # Интервалы для гистограммы
     histogram, _ = np.histogram(list(confs), bins=bins)
