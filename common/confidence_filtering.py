@@ -33,7 +33,7 @@ def filter_json_files(json_files, output_dir: str):
             output_path = os.path.join(output_dir, os.path.basename(file))
             with open(output_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=4)
-        
+            os.remove(file)
         except Exception as e:
             print(f"Error processing {file}: {e}")
 
