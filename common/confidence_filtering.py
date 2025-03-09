@@ -18,8 +18,8 @@ def get_json_files(directory):
 def filter_json_files(json_files, output_dir: str):
     os.makedirs(output_dir, exist_ok=True)  # Создаем выходную директорию, если её нет
     
+    print(f"Start processing")
     for file in tqdm(json_files):  # Цикл по всем файлам
-        print(f"Start processing {file}")
         try:
             with open(file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -33,8 +33,6 @@ def filter_json_files(json_files, output_dir: str):
             output_path = os.path.join(output_dir, os.path.basename(file))
             with open(output_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=4)
-            
-            print(f"Saved filtered file to {output_path}")
         
         except Exception as e:
             print(f"Error processing {file}: {e}")
