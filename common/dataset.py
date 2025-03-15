@@ -4,12 +4,10 @@ import json
 import cv2
 from collections import defaultdict
 from pathlib import Path
-import uuid
 import random
 import yaml
-from tqdm import tqdm
 
-INPUT_PATH = "../input"
+INPUT_PATH = "../input_videos"
 FRAME_SKIP_NUM = 20
 
 import sys
@@ -106,15 +104,11 @@ class DataHandler:
                 for ann in chain["chain_markups"]:
                     frame2annotations[int(ann["markup_frame"])].append(ann)
             cap = cv2.VideoCapture(video_path)
-            frame_num = -1
+            frame_num = 0
             while cap.isOpened():
                 ret, frame = cap.read()
                 if not ret:
                     break
-                frame_num += 1
-                if frame_num % self.granularity != 0:
-                    # skip frames
-                    continue
                 annotation_text = f""
                 height, width = frame.shape[:2]
                 boxes = [ann["markup_path"] for ann in frame2annotations[frame_num]]
@@ -133,6 +127,8 @@ class DataHandler:
                 with open(label_path, "w") as file:
                     file.write(annotation_text)
                 cv2.imwrite(str(img_path), frame)
+                frame_num += self.granularity
+                cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
                 # Create YAML file
         with open(self.yolo_dataset_path / "dataset.yaml", "w") as file:
             yaml.dump(

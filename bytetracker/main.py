@@ -15,6 +15,21 @@ MARKUPS_PATH = "../input_data"
 DETECTOR_PATH = "det_path"
 EMBEDDER_PATH = "emb_path"
 
+def get_video_samples(input_path, markup_path):
+    video_samples = get_markups(input_path, markup_path)
+    # Filter samples
+    video_samples = [
+        sample
+        for sample in video_samples
+        if (
+            (
+                os.path.isfile(sample.file_name)
+                or os.path.islink(sample.file_name)
+            )
+            and check_video_extension(sample.file_name)
+        )
+    ]
+    return video_samples
 
 def main():
     parser = argparse.ArgumentParser()
@@ -28,25 +43,13 @@ def main():
     )
     args = parser.parse_args()
     input_data = json.loads(args.input_data) if args.input_data else {}
-    # Get video samples from /markups
-    video_samples = get_markups(INPUT_PATH, MARKUPS_PATH)
-    # Filter samples
-    video_samples = [
-        sample
-        for sample in video_samples
-        if (
-            (
-                os.path.isfile(sample.file_name)
-                or os.path.islink(sample.file_name)
-            )
-            and check_video_extension(sample.file_name)
-        )
-    ]
     # Get models paths
     det_path = input_data.get(DETECTOR_PATH, YOLO_WEIGHTS_DEFAULT_PATH)
     emb_path = input_data.get(EMBEDDER_PATH, EMBEDDING_NET_DEFAULT_PATH)
     # Launch Train / Val mode
     if not args.work_format_training:
+        # Get video samples from /markups
+        video_samples = get_video_samples(INPUT_PATH, MARKUPS_PATH)
         print(f"Evaluatiion mode")
         evaluate(
             det_path, emb_path, video_samples, OUTPUT_PATH, args.host_web,
@@ -59,6 +62,11 @@ def main():
             Path(OUTPUT_PATH),
             args.host_web,
             input_data,
+        )
+        # Get video samples from /markups
+        video_samples = get_video_samples(INPUT_PATH, MARKUPS_PATH)
+        evaluate(
+            det_path, emb_path, video_samples, OUTPUT_PATH, args.host_web,
         )
         
 
