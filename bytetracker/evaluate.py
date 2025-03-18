@@ -52,6 +52,8 @@ def evaluate(
         input_folder (str): Dataset path
         output_folder (str): Output path where to save results from eval
     """
+    filenames = [sample.file_name for sample in files]
+    print(f"Start evaluation on this files: {filenames}")
     # Init logger
     cs = CS(host_web)
     # Get dataset files
@@ -65,6 +67,7 @@ def evaluate(
     emb_net.load_state_dict(torch.load(embed_model_path, weights_only=True))
     # Loop over the videos
     for file_num, sample in enumerate(tqdm(files, desc="Loop over videos")):
+        print(f"Processing file {sample.file_name}...")
         final_markup = {"files": []}
         # Markup for specific file
         file_markup = {
