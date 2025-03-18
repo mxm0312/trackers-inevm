@@ -6,6 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 import random
 import yaml
+from tqdm import tqdm
 
 INPUT_PATH = "../input_videos"
 FRAME_SKIP_NUM = 20
@@ -53,8 +54,9 @@ class DataHandler:
         self.granularity = granularity
 
     def create_yolo_dataset(self):
-        for filename in os.listdir(self.markups_path):
+        for filename in tqdm(os.listdir(self.markups_path)):
             if filename.endswith(".json"):
+                print(f'processing {filename} file...')
                 file_path = self.markups_path / filename
                 # Process frames from a single video
                 self.process_video(file_path)
@@ -126,7 +128,9 @@ class DataHandler:
                 label_path = self.input_labels_dir / f"{sample_id}.txt"
                 with open(label_path, "w") as file:
                     file.write(annotation_text)
-                cv2.imwrite(str(img_path), frame)
+                res = cv2.imwrite(str(img_path), frame)
+                if not res:
+                    print(f'failed to save {img_path} from {video_path}')
                 frame_num += self.granularity
                 cap.set(cv2.CAP_PROP_POS_FRAMES, frame_num)
                 # Create YAML file
