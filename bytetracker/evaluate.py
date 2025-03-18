@@ -21,7 +21,7 @@ from common.sample import VideoSample
 
 def save_annotation(markup: dict, output_file: str):
     print(f"Save results to: {output_file}")
-    with open(output_file, "w+") as f:
+    with open(output_file, "w+", encoding="utf-8") as f:
         json.dump(markup, f, ensure_ascii=False)
 
 
