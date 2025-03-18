@@ -33,7 +33,7 @@ def get_frame_times(video_path):
 
     # Run cmd by subprocess
     result = subprocess.run(
-        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8"
     )
 
     if result.returncode != 0:
