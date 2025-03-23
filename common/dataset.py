@@ -97,9 +97,10 @@ class DataHandler:
         with open(video_json, "r", encoding="utf-8") as file:
             data = json.load(file)
             file_anns = data["files"][0]
-            file_chains = file_anns["file_chains"]
-            video_name = file_anns["file_name"].split("/")[-1]
+            file_chains = file_anns["file_chains"] 
+            video_name = file_anns["file_name"].split("/")[-1] 
             video_path = f"{INPUT_PATH}/{video_name}"
+            print(f"proccessing frames from video: {video_path}...")
             frame2annotations = defaultdict(list)
             # Group annotations by frame number
             for chain in file_chains:

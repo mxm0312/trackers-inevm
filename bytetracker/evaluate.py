@@ -29,13 +29,12 @@ def is_valid_paths(cs, paths: List[str]):
     for path in paths:
         if not os.path.exists(path):
             error_msg = f"Модель по указанному пути не найдена: {path}"
-            cs.post_error(
-                generate_error_data(error_msg)
-            )
+            cs.post_error(generate_error_data(error_msg))
             cs.post_end()
             print(error_msg)
             return False
     return True
+
 
 def evaluate(
     detector_weights: str,
@@ -52,6 +51,11 @@ def evaluate(
         input_folder (str): Dataset path
         output_folder (str): Output path where to save results from eval
     """
+    global_statistics = {
+        "out_files": [],
+        "chains_count": [],
+        "markups_count": [],
+    }
     filenames = [sample.file_name for sample in files]
     print(f"Start evaluation on this files: {filenames}")
     # Init logger
@@ -60,7 +64,7 @@ def evaluate(
     os.makedirs(f"{output_folder}", exist_ok=True)
     # Create embedding model
     cs.post_start()
-    cs.post_progress(generate_progress_data(0.0, "1"))
+    cs.post_progress(generate_progress_data(0.0, "1 из 1"))
     if not is_valid_paths(cs, [detector_weights, embed_model_path]):
         return
     emb_net = EmbeddingNet()
@@ -121,16 +125,15 @@ def evaluate(
                 round(float(x), 6)
                 for x in sum(obj2emb[object_id]) / len(obj2emb[object_id])
             ]
-            chain_confidence = sum([
-                chain["markup_confidence"]
-                for chain in obj2ann[object_id]
-            ]) / len(obj2ann[object_id])
+            chain_confidence = sum(
+                [chain["markup_confidence"] for chain in obj2ann[object_id]]
+            ) / len(obj2ann[object_id])
             chain = {
                 "chain_name": str(object_id),
                 # Mean feature vector for object
                 "chain_vector": chain_vector,
                 "chain_markups": obj2ann[object_id],
-                "chain_confidence": chain_confidence
+                "chain_confidence": chain_confidence,
             }
             file_markup["file_chains"].append(chain)
         final_markup["files"].append(file_markup)
@@ -142,15 +145,24 @@ def evaluate(
         markup_path = f"{output_folder}/{Path(sample.file_name).name}.json"
         save_annotation(final_markup, markup_path)
         if os.path.exists(sample.file_name):
-            cs.post_progress(generate_progress_data(progress, "1", output_file_name))
+            file_chains_count = len(file_markup["file_chains"])
+            markups_count = count_markups(file_markup)
+            statistics = generate_statistics(
+                output_file_name, file_chains_count, markups_count, verbose=True
+            )
+            global_statistics["out_files"].append(output_file_name)
+            global_statistics["chains_count"].append(file_chains_count)
+            global_statistics["markups_count"].append(markups_count)
+            cs.post_progress(generate_progress_data(progress, "1 из 1", statistics))
         else:
             cs.post_error(
                 generate_error_data(
-                    f"Не удалось создать файл с разметкой для {output_file_name}"
+                    "Ошибка при создании файла",
+                    f"Не удалось создать файл с разметкой для {output_file_name}",
                 )
             )
-            cs.post_progress(generate_progress_data(progress, "1"))
+            cs.post_progress(generate_progress_data(progress, "1 из 1"))
     print(f"Markup completed!")
     # Log output files and final event
-    cs.post_end()
+    cs.post_end(global_statistics)
     return
