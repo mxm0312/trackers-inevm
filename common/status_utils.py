@@ -54,7 +54,7 @@ def generate_statistics(
 
 def count_markups(file_markup: Dict):
     total_markups = 0
-    for chain in file_markup:
+    for chain in file_markup["file_chains"]:
         total_markups += len(chain["chain_markups"])
     return total_markups
 
