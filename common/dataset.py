@@ -7,6 +7,7 @@ from pathlib import Path
 import random
 import yaml
 from tqdm import tqdm
+import uuid
 
 INPUT_PATH = "../input_videos"
 FRAME_SKIP_NUM = 20
@@ -124,7 +125,7 @@ class DataHandler:
                         f"0 {center_x} {center_y} {box_w / width} {box_h / height}\n"
                     )
                 # на данном этапе у меня есть содержимое для файла аннотации и изображение
-                sample_id = frame_num
+                sample_id = uuid.uuid4()
                 img_path = self.input_images_dir / f"{sample_id}.jpeg"
                 label_path = self.input_labels_dir / f"{sample_id}.txt"
                 with open(label_path, "w") as file:
