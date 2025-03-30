@@ -12,6 +12,6 @@ COPY bytetracker/ ./bytetracker/
 COPY embeddings/ ./embeddings/
 
 RUN pip3 install numpy==1.25
-RUN pip3 install -r /bytetracker/requirements.txt
+RUN pip3 install --default-timeout=100 -r /bytetracker/requirements.txt
 
 ENTRYPOINT ["python","/bytetracker/main.py"]
