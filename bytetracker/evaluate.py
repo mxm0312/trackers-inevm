@@ -1,6 +1,7 @@
 import cv2
 import json
 import argparse
+import pickle
 from tqdm import tqdm
 from typing import List, Dict
 from pathlib import Path
@@ -81,6 +82,8 @@ def evaluate(
             "file_chains": [],
         }
         # Dict to store unique objects and their annotations through frames
+        chain_vector_list = []
+        markup_vector_list = []
         obj2ann = defaultdict(list)
         obj2emb = defaultdict(list)
         tracker = ByteTracker(detector_weights)  # Create tracker
@@ -104,12 +107,15 @@ def evaluate(
                 )
                 crop = frame[y : y + height, x : x + width]
                 embedding = emb_net.get_embedding(crop)
+                markup_vector_index = len(markup_vector_list)
+                markup_vector = [round(float(x), 6) for x in embedding]
+                markup_vector_list.append(markup_vector)
                 obj2emb[int(object[-1])].append(embedding)
                 obj2ann[int(object[-1])].append(
                     {
                         "markup_frame": id,
                         "markup_time": round(times[id], 2),  # Время до сотых секунды
-                        "markup_vector": [round(float(x), 6) for x in embedding],
+                        "markup_vector": markup_vector_index,
                         "markup_confidence": round(confidences[obj_num], 6),
                         "markup_path": {
                             "x": x,
@@ -121,17 +127,19 @@ def evaluate(
                 )
             id += 1
         for object_id in obj2ann:
+            chain_vector_index = len(chain_vector_list)
             chain_vector = [
                 round(float(x), 6)
                 for x in sum(obj2emb[object_id]) / len(obj2emb[object_id])
             ]
+            chain_vector_list.append(chain_vector)
             chain_confidence = sum(
                 [chain["markup_confidence"] for chain in obj2ann[object_id]]
             ) / len(obj2ann[object_id])
             chain = {
                 "chain_name": str(object_id),
                 # Mean feature vector for object
-                "chain_vector": chain_vector,
+                "chain_vector": chain_vector_index,
                 "chain_markups": obj2ann[object_id],
                 "chain_confidence": chain_confidence,
             }
@@ -141,8 +149,20 @@ def evaluate(
         # Send event to host
         progress = round((file_num + 1) / len(files) * 100, 2)
         output_file_name = f"{Path(sample.file_name).name}.json"
-        # save annotations
         markup_path = f"{output_folder}/{Path(sample.file_name).name}.json"
+         # Сохранение chains
+        filename_chains = f"{output_folder}/{Path(sample.file_name).name}_chains_vectors.pkl"
+        print(f"save chains on {filename_chains}")
+        # Сохранение numpy массива в pkl файл
+        with open(filename_chains, "wb") as f:
+            pickle.dump(np.array(chain_vector_list), f)
+        # Сохранение markups
+        filename_markups = f"{output_folder}/{Path(sample.file_name).name}_markups_vectors.pkl"
+        print(f"save markups on {filename_markups}")
+        # Сохранение numpy массива в pkl файл
+        with open(filename_markups, "wb") as f:
+            pickle.dump(np.array(markup_vector_list), f)
+        # save annotations
         save_annotation(final_markup, markup_path)
         if os.path.exists(sample.file_name):
             file_chains_count = len(file_markup["file_chains"])
