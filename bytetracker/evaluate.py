@@ -149,7 +149,7 @@ def evaluate(
         # Send event to host
         progress = round((file_num + 1) / len(files) * 100, 2)
         output_file_name = f"{Path(sample.file_name).name}.json"
-        markup_path = f"{output_folder}/{Path(sample.file_name).name}.json"
+        markup_path = f"{output_folder}/OUT_{Path(sample.file_name).name}.json"
          # Сохранение chains
         filename_chains = f"{output_folder}/{Path(sample.file_name).name}_chains_vectors.pkl"
         print(f"save chains on {filename_chains}")
