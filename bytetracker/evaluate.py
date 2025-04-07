@@ -76,7 +76,7 @@ def evaluate(
         final_markup = {"files": []}
         # Markup for specific file
         file_markup = {
-            "file_name": sample.file_name,
+            "file_name": Path(sample.file_name).name,
             "file_id": sample.file_id,
             "file_subset": sample.file_subset,
             "file_chains": [],
