@@ -151,13 +151,13 @@ def evaluate(
         output_file_name = f"{Path(sample.file_name).name}.json"
         markup_path = f"{output_folder}/{Path(sample.file_name).name}.json"
          # Сохранение chains
-        filename_chains = f"{output_folder}/{Path(sample.file_name).stem}_chains_vectors.pkl"
+        filename_chains = f"{output_folder}/{Path(sample.file_name).name}_chains_vectors.pkl"
         print(f"save chains on {filename_chains}")
         # Сохранение numpy массива в pkl файл
         with open(filename_chains, "wb") as f:
             pickle.dump(np.array(chain_vector_list), f)
         # Сохранение markups
-        filename_markups = f"{output_folder}/{Path(sample.file_name).stem}_markups_vectors.pkl"
+        filename_markups = f"{output_folder}/{Path(sample.file_name).name}_markups_vectors.pkl"
         print(f"save markups on {filename_markups}")
         # Сохранение numpy массива в pkl файл
         with open(filename_markups, "wb") as f:
