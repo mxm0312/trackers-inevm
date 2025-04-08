@@ -30,7 +30,7 @@ def is_valid_paths(cs, paths: List[str]):
     for path in paths:
         if not os.path.exists(path):
             error_msg = f"Модель по указанному пути не найдена: {path}"
-            cs.post_error(generate_error_data(error_msg), "")
+            cs.post_error(generate_error_data(error_msg, ""))
             cs.post_end()
             print(error_msg)
             return False
@@ -184,5 +184,5 @@ def evaluate(
             cs.post_progress(generate_progress_data(progress, "1 из 1"))
     print(f"Markup completed!")
     # Log output files and final event
-    cs.post_end(global_statistics)
+    cs.post_end()
     return
