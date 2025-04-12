@@ -7,6 +7,8 @@ from pathlib import Path
 import random
 import yaml
 from tqdm import tqdm
+from common.container_status import ContainerStatus as CS
+from common.status_utils import *
 import uuid
 
 INPUT_PATH = "../input_videos"
@@ -54,13 +56,18 @@ class DataHandler:
         self.output_labels_val_dir.mkdir(exist_ok=True)
         self.granularity = granularity
 
-    def create_yolo_dataset(self):
-        for filename in tqdm(os.listdir(self.markups_path)):
+    def create_yolo_dataset(self, cs):
+        progress = 0.0
+        cs.post_progress(generate_progress_data(progress, "1 из 2"))
+        files = os.listdir(self.markups_path)
+        for filename in tqdm(files):
             if filename.endswith(".json"):
                 print(f'processing {filename} file...')
                 file_path = self.markups_path / filename
                 # Process frames from a single video
                 self.process_video(file_path)
+                cs.post_progress(generate_progress_data(round((progress + 1.0) / len(files) * 100, 2), "1 из 2"))
+                progress += 1.0
         return
 
     def split_dataset(self, train_ratio=0.8):

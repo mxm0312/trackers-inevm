@@ -6,7 +6,7 @@ from evaluate import *
 from train import *
 from common.video_processor import check_video_extension, get_markups
 
-YOLO_WEIGHTS_DEFAULT_PATH = "../weights/yolo.pt"
+YOLO_WEIGHTS_DEFAULT_PATH = "../weights/yolov8n.pt"
 EMBEDDING_NET_DEFAULT_PATH = "../weights/mobilenet.pt"
 OUTPUT_PATH = "../output"
 INPUT_PATH = "../input_videos"
@@ -62,11 +62,6 @@ def main():
             Path(OUTPUT_PATH),
             args.host_web,
             input_data,
-        )
-        # Get video samples from /markups
-        video_samples = get_video_samples(INPUT_PATH, MARKUPS_PATH)
-        evaluate(
-            det_path, emb_path, video_samples, OUTPUT_PATH, args.host_web,
         )
         
 

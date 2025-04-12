@@ -1,6 +1,8 @@
 from ultralytics import YOLO
 from pathlib import Path
 from dataclasses import dataclass
+from common.container_status import ContainerStatus as CS
+from common.status_utils import *
 import os
 import shutil
 
@@ -20,6 +22,7 @@ device_map = {"gpu": 0, "multiple_gpu": 1, "cpu": "cpu"}
 def train(
     markups_path: Path, yolo_path: Path, output_path: Path, host_web: str, input_data
 ):
+    cs = CS(host_web)
     current_path = Path(os.getcwd())
     # Parse parameters from input_data
     epochs = input_data.get("epochs", 10)
@@ -31,13 +34,18 @@ def train(
     device = device_map.get(input_data.get("device", "cpu"), "cpu")
     imgsz = input_data.get("imgsz", 640)
     # Dataset convertion
+    cs.post_start()
     print("Start dataset convertion to YOLO format")
     yolo_data_dir = output_path / "det_dataset"
     dataset = DataHandler(markups_path, yolo_data_dir, host_web, granularity)
-    dataset.create_yolo_dataset()
+    dataset.create_yolo_dataset(cs)
     dataset.split_dataset()
     print("Dataset conversion completed!")
     # Train model
+    if not os.path.exists(yolo_path):
+        print("YOLO weights file not found. Stop training")
+        return
+    cs.post_progress(generate_progress_data(0.0, "2 из 2"))
     model = YOLO(yolo_path)
     results = model.train(
         data=current_path / yolo_data_dir / "dataset.yaml",
@@ -60,4 +68,6 @@ def train(
     metrics_path = Path(results.save_dir) / "results.csv"
     save_metrics_path = output_path / "results.csv"
     shutil.move(metrics_path, save_metrics_path)
+    cs.post_progress(generate_progress_data(100.0, "2 из 2"))
+    cs.post_end()
     return
