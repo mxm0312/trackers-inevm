@@ -68,6 +68,7 @@ def evaluate(
     cs.post_progress(generate_progress_data(0.0, "1 из 1"))
     if not is_valid_paths(cs, [detector_weights, embed_model_path]):
         return
+    # Initialize embedding model
     emb_net = EmbeddingNet()
     emb_net.load_state_dict(torch.load(embed_model_path, weights_only=True))
     # Loop over the videos
@@ -81,11 +82,11 @@ def evaluate(
             "file_subset": sample.file_subset,
             "file_chains": [],
         }
-        # Dict to store unique objects and their annotations through frames
+        # Lists to store feature vectors in seperate file
         chain_vector_list = []
         markup_vector_list = []
-        obj2ann = defaultdict(list)
-        obj2emb = defaultdict(list)
+        obj2ann = defaultdict(list) # maps tracklet to its annotation
+        obj2emb = defaultdict(list) # maps tracklet to its embedding (feature vector)
         tracker = ByteTracker(detector_weights)  # Create tracker
         cap = cv2.VideoCapture(sample.file_name)
         id = 0
@@ -98,6 +99,7 @@ def evaluate(
             if results is None:
                 id += 1
                 continue
+            # Iterate through tracker results and save bbox markups
             for obj_num, object in enumerate(results):
                 x, y, width, height = (
                     max(0, int(object[0])),
