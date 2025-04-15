@@ -9,6 +9,7 @@ import yaml
 from tqdm import tqdm
 from common.container_status import ContainerStatus as CS
 from common.status_utils import *
+from common.video_processor import get_frame_times
 import uuid
 
 INPUT_PATH = "../input_videos"
@@ -108,12 +109,15 @@ class DataHandler:
             file_chains = file_anns["file_chains"] 
             video_name = file_anns["file_name"].split("/")[-1] 
             video_path = f"{INPUT_PATH}/{video_name}"
+            times = [round(t, 2) for t in get_frame_times(video_path)]
             print(f"proccessing frames from video: {video_path}...")
             frame2annotations = defaultdict(list)
             # Group annotations by frame number
             for chain in file_chains:
                 for ann in chain["chain_markups"]:
-                    frame2annotations[int(ann["markup_frame"])].append(ann)
+                    markup_time = round(ann["markup_time"], 2)
+                    frame_num = times.index(markup_time)
+                    frame2annotations[int(frame_num)].append(ann)
             cap = cv2.VideoCapture(video_path)
             frame_num = 0
             while cap.isOpened():
