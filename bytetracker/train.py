@@ -56,7 +56,7 @@ def train(
     print("Dataset conversion completed!")
 
     ### START TRAIN
-    cs.post_progress(generate_progress_data(0.0, "2 из 2"))
+    cs.post_progress(generate_progress_data(0.0, "Обучение"))
     try:
         model = YOLO(yolo_path)
         results = model.train(

@@ -65,7 +65,7 @@ def evaluate(
     os.makedirs(f"{output_folder}", exist_ok=True)
     # Create embedding model
     cs.post_start()
-    cs.post_progress(generate_progress_data(0.0, "1 из 1"))
+    cs.post_progress(generate_progress_data(0.0, "inference"))
     if not is_valid_paths(cs, [detector_weights, embed_model_path]):
         return
     # Initialize embedding model
@@ -175,7 +175,7 @@ def evaluate(
             global_statistics["out_files"].append(output_file_name)
             global_statistics["chains_count"].append(file_chains_count)
             global_statistics["markups_count"].append(markups_count)
-            cs.post_progress(generate_progress_data(progress, "1 из 1", statistics))
+            cs.post_progress(generate_progress_data(progress, "inference", statistics))
         else:
             cs.post_error(
                 generate_error_data(
@@ -183,7 +183,7 @@ def evaluate(
                     f"Не удалось создать файл с разметкой для {output_file_name}",
                 )
             )
-            cs.post_progress(generate_progress_data(progress, "1 из 1"))
+            cs.post_progress(generate_progress_data(progress, "inference"))
     print(f"Markup completed!")
     # Log output files and final event
     cs.post_end()
