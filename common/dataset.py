@@ -67,7 +67,9 @@ class DataHandler:
                 file_path = self.markups_path / filename
                 # Process frames from a single video
                 self.process_video(file_path)
-                cs.post_progress(generate_progress_data(round((progress + 1.0) / len(files) * 100, 2), "1 из 2"))
+                stats_prog = round((progress + 1.0) / len(files) * 100, 2)
+                print(f"Обработано видео в процентах {stats_prog}% (всего видео {len(file_path)})")
+                cs.post_progress(generate_progress_data(stats_prog, "1 из 2"))
                 progress += 1.0
         return
 
