@@ -20,10 +20,8 @@ device_map = {"gpu": 0, "multiple_gpu": 1, "cpu": "cpu"}
 
 
 def train(
-    markups_path: Path, yolo_path: Path, output_path: Path, host_web: str, input_data
+    cs, markups_path: Path, yolo_path: Path, output_path: Path, host_web: str, input_data
 ):
-    cs = CS(host_web)
-    cs.post_start()
     if not os.path.exists(yolo_path):
         print("YOLO weights file not found. Stop training")
         cs.post_error(
@@ -89,5 +87,4 @@ def train(
                 f"{e}",
             )
         )
-    cs.post_end()
     return

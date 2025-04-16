@@ -38,6 +38,7 @@ def is_valid_paths(cs, paths: List[str]):
 
 
 def evaluate(
+    cs,
     detector_weights: str,
     embed_model_path,
     files: List[VideoSample],
@@ -60,7 +61,6 @@ def evaluate(
     filenames = [sample.file_name for sample in files]
     print(f"Start evaluation on this files: {filenames}")
     # Init logger
-    cs = CS(host_web)
     # Get dataset files
     os.makedirs(f"{output_folder}", exist_ok=True)
     # Create embedding model
@@ -186,5 +186,4 @@ def evaluate(
             cs.post_progress(generate_progress_data(progress, "inference"))
     print(f"Markup completed!")
     # Log output files and final event
-    cs.post_end()
     return

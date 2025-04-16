@@ -5,6 +5,7 @@ from typing import List
 from evaluate import *
 from train import *
 from common.video_processor import check_video_extension, get_markups
+from common.container_status import ContainerStatus as CS
 
 YOLO_WEIGHTS_DEFAULT_PATH = "../weights/yolov8n.pt"
 EMBEDDING_NET_DEFAULT_PATH = "../weights/mobilenet.pt"
@@ -46,17 +47,20 @@ def main():
     # Get models paths
     det_path = input_data.get(DETECTOR_PATH, YOLO_WEIGHTS_DEFAULT_PATH)
     emb_path = input_data.get(EMBEDDER_PATH, EMBEDDING_NET_DEFAULT_PATH)
+    cs = CS(args.host_web)
+    cs.post_start()
     # Launch Train / Val mode
     if not args.work_format_training:
         # Get video samples from /markups
         video_samples = get_video_samples(INPUT_PATH, MARKUPS_PATH)
         print(f"Evaluatiion mode")
         evaluate(
-            det_path, emb_path, video_samples, OUTPUT_PATH, args.host_web,
+            cs, det_path, emb_path, video_samples, OUTPUT_PATH, args.host_web,
         )
     else:
         print(f"Train mode")
         train(
+            cs,
             Path(MARKUPS_PATH),
             Path(det_path),
             Path(OUTPUT_PATH),
@@ -66,8 +70,9 @@ def main():
         # Get video samples from /markups
         video_samples = get_video_samples(INPUT_PATH, MARKUPS_PATH)
         evaluate(
-            det_path, emb_path, video_samples, OUTPUT_PATH, args.host_web,
+            cs, det_path, emb_path, video_samples, OUTPUT_PATH, args.host_web,
         )
+    cs.post_end()
         
 
 
