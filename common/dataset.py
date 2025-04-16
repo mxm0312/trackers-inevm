@@ -59,7 +59,7 @@ class DataHandler:
 
     def create_yolo_dataset(self, cs):
         progress = 0.0
-        cs.post_progress(generate_progress_data(progress, "1 из 2"))
+        cs.post_progress(generate_progress_data(progress, "Подготовка данных для обучения"))
         files = os.listdir(self.markups_path)
         files_count = len([x for x in files if x.endswith(".json")])
         for filename in tqdm(files):

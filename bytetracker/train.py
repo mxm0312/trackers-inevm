@@ -80,7 +80,7 @@ def train(
         metrics_path = Path(results.save_dir) / "results.csv"
         save_metrics_path = output_path / "results.csv"
         shutil.move(metrics_path, save_metrics_path)
-        cs.post_progress(generate_progress_data(100.0, "2 из 2"))
+        cs.post_progress(generate_progress_data(100.0, "Обучение"))
     except Exception as e:
         print(f"Произошла ошибка: {e}")
         cs.post_error(
