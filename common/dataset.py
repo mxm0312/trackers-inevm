@@ -61,14 +61,15 @@ class DataHandler:
         progress = 0.0
         cs.post_progress(generate_progress_data(progress, "1 из 2"))
         files = os.listdir(self.markups_path)
+        files_count = len([x for x in files if x.endswith(".json")])
         for filename in tqdm(files):
             if filename.endswith(".json"):
                 print(f'processing {filename} file...')
                 file_path = self.markups_path / filename
                 # Process frames from a single video
                 self.process_video(file_path)
-                stats_prog = round((progress + 1.0) / len(files) * 100, 2)
-                print(f"Обработано видео в процентах {stats_prog}% (всего видео {len(files)})")
+                stats_prog = round((progress + 1.0) / files_count * 100, 2)
+                print(f"Обработано видео в процентах {stats_prog}% (всего видео {files_count})")
                 cs.post_progress(generate_progress_data(stats_prog, "1 из 2"))
                 progress += 1.0
         return
