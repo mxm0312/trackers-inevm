@@ -63,6 +63,11 @@ def main():
             args.host_web,
             input_data,
         )
+        # Get video samples from /markups
+        video_samples = get_video_samples(INPUT_PATH, MARKUPS_PATH)
+        evaluate(
+            det_path, emb_path, video_samples, OUTPUT_PATH, args.host_web,
+        )
         
 
 
