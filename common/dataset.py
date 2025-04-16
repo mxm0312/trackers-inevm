@@ -116,7 +116,7 @@ class DataHandler:
             for chain in file_chains:
                 for ann in chain["chain_markups"]:
                     markup_time = round(ann["markup_time"], 2)
-                    frame_num = times.index(markup_time)
+                    frame_num = min(range(len(times)), key=lambda i: abs(times[i] - markup_time))
                     frame2annotations[int(frame_num)].append(ann)
             cap = cv2.VideoCapture(video_path)
             frame_num = 0
