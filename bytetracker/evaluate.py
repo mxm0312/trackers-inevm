@@ -64,7 +64,6 @@ def evaluate(
     # Get dataset files
     os.makedirs(f"{output_folder}", exist_ok=True)
     # Create embedding model
-    cs.post_start()
     cs.post_progress(generate_progress_data(0.0, "inference"))
     if not is_valid_paths(cs, [detector_weights, embed_model_path]):
         return
