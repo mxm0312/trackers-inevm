@@ -110,6 +110,7 @@ def evaluate(
                 embedding = emb_net.get_embedding(crop)
                 markup_vector_index = len(markup_vector_list)
                 markup_vector = [round(float(x), 6) for x in embedding]
+                print(f'Длина вектора: {len(markup_vector)}')
                 markup_vector_list.append(markup_vector)
                 obj2emb[int(object[-1])].append(embedding)
                 obj2ann[int(object[-1])].append(
