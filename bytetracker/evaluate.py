@@ -109,7 +109,6 @@ def evaluate(
                 crop = frame[y : y + height, x : x + width]
                 embedding = emb_net.get_embedding(crop)
                 markup_vector_index = len(markup_vector_list)
-                print(f'vector len {len(embedding)}')
                 markup_vector = [round(float(x), 6) for x in embedding]
                 markup_vector_list.append(markup_vector)
                 obj2emb[int(object[-1])].append(embedding)
